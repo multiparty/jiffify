@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/multiparty/jiffify#readme",
   "dependencies": {
-    "babel": "^6.23.0"
+    "babel": "^6.23.0",
+    "babylon": "^6.18.0"
   },
   "devDependencies": {
     "babel-preset-env": "^1.6.1"
