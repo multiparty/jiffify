@@ -2,7 +2,7 @@ const util = require('util');
 const babylon = require('babylon');
 const traverse = require('babel-traverse');
 
-const code = `function f(a,b) {return a + b + c + d;}`;
+const code = `function f(a,b) {return a * b * c + d + e + f * a;}`;
 
 
 var AST = babylon.parse(code);
@@ -13,27 +13,39 @@ const ADD = '+';
 const SUB = '-';
 const MULT = "*";
 const DIV = "/";
-
+const IDENT = "Identifier";
 
 traverseAST(AST);
 
-function translateOperator(op) {
-  if (op === ADD) {
-    
-  } else if (op === SUB) {
-
-  } else if (op === MULT) {
-
-  } else if (op === DIV) {
-
-  }
-}
+// function translateOperator(op) {
+ 
+// }
 
 function translateToJiff(tree) {
+
+  if (tree.type === IDENT) {
+    return tree.name;
+  }
+
   var l = translateToJiff(tree.left);
   var r = translateToJiff(tree.right);
 
-  translateOperator(tree.operator);
+  var op = '';
+  if (tree.operator === ADD) {
+    op = ".add("
+  } else if (tree.operator === SUB) {
+    op = ".sub("
+  } else if (tree.operator === MULT) {
+    op = ".mult("
+  } else if (tree.operator === DIV) {
+
+  }
+
+  return l.concat(op).concat(r).concat(")");
+  // return ((l.concat(tree.operator)).concat(r));
+
+  // translateOperator(tree.operator);
+
 
 }
 
@@ -45,10 +57,11 @@ function traverseAST(AST) {
 
       for (var i = 0; i < body.length; i++) {
         if (body[i].argument.type === "BinaryExpression") {
-          translateToJiff(body[i].argument);
-
+          var translated = translateToJiff(body[i].argument);
+          console.log("jiff translation: ", translated);     
         }
       }
     }
   }
+
 }
