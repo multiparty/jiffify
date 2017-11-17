@@ -1,9 +1,7 @@
 const util = require('util');
 const babylon = require('babylon');
-const traverse = require('babel-traverse');
 
 const code = `function f(a,b) {return a * b * c + d + e + f * a;}`;
-
 
 var AST = babylon.parse(code);
 
@@ -16,10 +14,6 @@ const DIV = "/";
 const IDENT = "Identifier";
 
 traverseAST(AST);
-
-// function translateOperator(op) {
- 
-// }
 
 function translateToJiff(tree) {
 

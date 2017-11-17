@@ -1,5 +1,4 @@
-// {
-//     "parserOpts": {
-//         "parser": ''
-//     }
-// }
+{
+  "presets": ["env"],
+  "plugins": ["transform-decorators-legacy"]
+}
