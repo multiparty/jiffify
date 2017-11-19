@@ -23,6 +23,6 @@ app.get('/', function(req,res) {
 
 app.post('/postCode', function(req,res) {
   jiffify.parseCode(req.body.code);
-  
+
   res.sendStatus(200);
 });
