@@ -5,7 +5,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 
 // modules
-const jiffify = ('./app/ibis');
+const jiffify = require('./app/jiffify');
 
 app.use(bodyParser.urlencoded({
   extended: true
@@ -22,7 +22,13 @@ app.get('/', function(req,res) {
 });
 
 app.post('/postCode', function(req,res) {
-  jiffify.parseCode(req.body.code);
+  var translatedCode = jiffify.parseCode(req.body.code);
 
-  res.sendStatus(200);
+  if (translatedCode) {
+    res.send(translatedCode);    
+  } else {
+    // console.log('could not be jiffified');
+    res.send('Could not be jiffied')
+    // res.sendStatus(200).send("Code could not be jiffified!");
+  }
 });

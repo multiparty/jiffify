@@ -43,8 +43,9 @@
           type: "POST",
           url: '/postCode',
           data: {code: code},
-          success: function(){
-            console.log('yay!');
+          success: function(data){
+            $('#codeOutput').val(data);
+
           },
           dataType: 'text'
           // success: success,
