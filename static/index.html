@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jiffify!</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+</head>
+
+<body>
+  <div class="col-xl-4 container"> 
+  <h2 style="text-align: center; padding: 20px">Jiffify!</h2>
+
+<!-- <form method="post" action="/submit_hypothesis">
+					Name:<br> <input class="textbox" type="text" name="student_name"/><br><br>
+					Hypothesis:<br><textarea name="hypothesis" cols="30" rows="6"></textarea><br><br>
+					<input type="submit" value="Submit"/><br><br>
+				</form> -->
+
+  <div class="row">
+    <div class="col-md-6">
+      <!-- <form method="post" action="/postCode"> -->
+      <textarea id="codeInput" style="height: 500px; width: 100%" name="codeInput"></textarea>
+      <br>
+      <input id="submitBtn" class="btn-primary" type="submit" value="Submit">
+    <!-- </form> -->
+    </div>
+    <div class="col-md-6">
+      <textarea id="codeOutput" style="height: 500px; width: 100%" name="paragraph_text"></textarea>
+    </div>            
+  </div>
+
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      $('#submitBtn').click(function (){
+        var code = $('#codeInput').val();
+        $.ajax({
+          type: "POST",
+          url: '/postCode',
+          data: {code: code},
+          success: function(){
+            console.log('yay!');
+          },
+          dataType: 'text'
+          // success: success,
+          // dataType: dataType
+        });
+      }); 
+    }); 
+ 
+
+  </script>
+</body>
+</html>
