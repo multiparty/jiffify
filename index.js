@@ -27,8 +27,6 @@ app.post('/postCode', function(req,res) {
   if (translatedCode) {
     res.send(translatedCode);    
   } else {
-    // console.log('could not be jiffified');
     res.send('Could not be jiffied')
-    // res.sendStatus(200).send("Code could not be jiffified!");
   }
 });

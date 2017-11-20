@@ -2,22 +2,11 @@ const util = require('util');
 const babylon = require('babylon');
 const traverse = require('babel-traverse');
 
-// const code = `function f(a,b) {return (a * b) + (a + b) ;}`;
-
-
-
-// var AST = babylon.parse(code);
-
-// var AST = AST.program.body[0];
-
 const ADD = '+';
 const SUB = '-';
 const MULT = "*";
 const DIV = "/";
 const IDENT = "Identifier";
-
-// traverseAST(AST);
-
 
 function parseCode(code) {
   var AST = babylon.parse(code);
@@ -36,7 +25,6 @@ function translateToJiff(tree, params) {
 
   var op = '.';
   if (tree.operator === ADD) {
-    // if (params.contains())
     op = ".add"
   } else if (tree.operator === SUB) {
     op = ".sub"
@@ -76,7 +64,7 @@ function traverseAST(AST) {
       }
     }
   } catch (err) {
-    console.error('error', err)
+    console.error('error', err);
     return null;
   }
 
