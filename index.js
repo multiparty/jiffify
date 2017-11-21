@@ -13,6 +13,7 @@ app.use(bodyParser.urlencoded({
 
 var server = app.listen(8081, function() {
   console.log('Listening on port %d', server.address().port);
+  console.log('http://localhost:8081/');
 });
 
 app.use(express.static(__dirname + '/static'));
