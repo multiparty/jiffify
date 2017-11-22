@@ -1,5 +1,7 @@
 import * as babylon from "babylon";
 import traverse from "babel-traverse";
+import * as t from "babel-types";
+const codegen = require('./codegen');
 
 
 // top-level function called when user inputs code
@@ -12,24 +14,25 @@ function parse_code(code) {
 
 // traverse AST, return op code
 function traversal(ast) {
+    var op_code = '';
     traverse(ast, {
         enter(path)
         {
-            if (path.node.type === 'Identifier') {
-                console.log(path.node.name)
+            if (t.isVariableDeclarator(path.node)) {
+                op_code += codegen.generate_var(path);
             }
         }
     });
-    return 1;
+
+    return op_code;
 }
 
 
 // dummy function example.
 // TODO: accept user input & pass to tree traversal
 function g(a, b) {
-    var c = a + b;
-    const d = c + 7;
-    return d;
+    var c = a + 3 - b;
+    return c;
 }
 
 
