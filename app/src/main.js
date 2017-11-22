@@ -13,6 +13,10 @@ function parse_code(code) {
 
 
 // traverse AST, return op code
+/*
+might be better to detect a function call here instead, and recursively
+expand out generated code via the visitor nodes in codegen
+ */
 function traversal(ast) {
     var op_code = '';
     traverse(ast, {
@@ -42,3 +46,5 @@ const f = String(g);
 const op_code = parse_code(f);
 
 console.log(op_code);
+
+module.exports.parse_code = parse_code;
