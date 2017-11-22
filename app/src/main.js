@@ -31,8 +31,9 @@ function traversal(ast) {
 // dummy function example.
 // TODO: accept user input & pass to tree traversal
 function g(a, b) {
-    var c = a + 3 - b;
-    return c;
+    var c = a + 3 * 8 + b - 3 + 6;
+    var d = 9 / c;
+    return d;
 }
 
 
