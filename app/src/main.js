@@ -32,7 +32,7 @@ function traversal(ast) {
 // TODO: accept user input & pass to tree traversal
 function g(a, b) {
     var c = a + 3 * 8 + b - 3 + 6;
-    var d = 9 / c;
+    var d = c / 9;
     return d;
 }
 
