@@ -35,16 +35,17 @@ function traversal(ast) {
 // dummy function example.
 // TODO: accept user input & pass to tree traversal
 function g(a, b) {
-    var c = a + 3 * 8 + b - 3 + 6;
-    var d = c / 9;
-    return d;
+    var c = a.add(7);
+    return c;
 }
 
+var src = 'var c = a + b;';
 
-const f = String(g);
 
-const op_code = parse_code(f);
 
-console.log(op_code);
+// const f = String(g);
+// const op_code = parse_code(f);
 
-module.exports.parse_code = parse_code;
+const op_code = parse_code(code);
+
+
