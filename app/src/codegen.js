@@ -41,7 +41,7 @@ module.exports = function(babel) {
                 )
             )
         } else {
-            rec_try(path.get('left'));
+            bin_rec_transform(path.get('left'));
             path.replaceWith(
                 bin_nonleaf(
                     path.node.left, path.node.right, 'add'
