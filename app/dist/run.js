@@ -19,16 +19,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 var babel = require('babel-core');
 var codegen = require('./codegen');
 
-/*
-var src = 'function fun(a,b) { var d = ((a + 3) * b) / e;\nreturn d;\n}';
-
-var out = babel.transform(src, {
-    plugins: [codegen]
-});
-*/
-
-// console.log(out.code);
-
 function parseCode(src) {
     var out = babel.transform(src, {
         plugins: [codegen]
