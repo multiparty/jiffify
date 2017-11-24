@@ -30,6 +30,7 @@ module.exports = function(babel) {
                     ), [right]
                 );
         }
+        // if jiff doesn't support <value>.<op>(operand) statements might need to just return error here
         else if (t.isNumericLiteral(left)) {
             var expr =
                 t.callExpression(
@@ -40,6 +41,7 @@ module.exports = function(babel) {
         }
         else {
             console.log('Unknown parameter type');
+            return null
         }
         return expr;
     }

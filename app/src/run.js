@@ -4,10 +4,12 @@ import * as t from "babel-types";
 var babel = require('babel-core');
 const codegen = require('./codegen');
 
-var src = 'function fun(a,b) { var d = ((a + b) * 7) / e;\nreturn d;\n}';
+function parseCode(src) {
+    var out = babel.transform(src, {
+        plugins: [codegen]
+    });
 
-var out = babel.transform(src, {
-    plugins: [codegen]
-});
+    return out.code
+}
 
-console.log(out.code);
+module.exports.parseCode = parseCode;
