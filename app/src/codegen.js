@@ -25,7 +25,6 @@ module.exports = function(babel) {
     }
 
     function bin_nonleaf(left, right, op) {
-        // might not need memberExpression call since lower levels are converted first
         const expr = t.callExpression(
             t.memberExpression(
                 left, t.identifier(op)
@@ -34,24 +33,27 @@ module.exports = function(babel) {
         return expr;
     }
 
+    function bin_rec_transform(path) {
+        if (t.isIdentifier(path.node.left)) {
+            path.replaceWith(
+                t.callExpression(
+                    bin_leaf(path.node.left.name, 'add'), [path.node.right]
+                )
+            )
+        } else {
+            rec_try(path.get('left'));
+            path.replaceWith(
+                bin_nonleaf(
+                    path.node.left, path.node.right, 'add'
+                )
+            )
+        }
+    }
+
     return {
         visitor: {
             BinaryExpression(path){
-                if (t.isIdentifier(path.node.left)) {
-                    path.replaceWith(
-                        t.callExpression(
-                            bin_leaf(path.node.left.name, 'add'), [path.node.right]
-                        )
-                    )
-                }
-                // this is replacing the whole sub-tree, including the nested binary op
-                else {
-                    path.replaceWith(
-                        t.binaryExpression(
-                            '+', path.node.left.left, bin_nonleaf(path.node.left.right, path.node.right, 'add')
-                        )
-                    )
-                }
+                bin_rec_transform(path);
             }
         }
     }

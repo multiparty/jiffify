@@ -5,7 +5,7 @@ var babel = require('babel-core');
 const codegen = require('./codegen');
 
 
-var src = 'function fun(a,b) { var d = a + b + c + d;\nreturn d;\n}';
+var src = 'function fun(a,b) { var d = a + b + c + e;\nreturn d;\n}';
 
 var out = babel.transform(src, {
     plugins: [codegen]
