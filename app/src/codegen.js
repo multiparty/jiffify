@@ -18,33 +18,57 @@ function translate_op(op) {
 module.exports = function(babel) {
     const t = babel.types;
 
-    function bin_leaf(leftName, op) {
-        const expr = t.memberExpression(
-            t.identifier(leftName), t.identifier(op));
-        return expr;
-    }
-
-    function bin_nonleaf(left, right, op) {
-        const expr = t.callExpression(
-            t.memberExpression(
-                left, t.identifier(op)
-            ), [right]
-        );
-        return expr;
-    }
-
-    function bin_rec_transform(path) {
-        if (t.isIdentifier(path.node.left)) {
-            path.replaceWith(
+    // transform left-most binary op
+    // TODO: if the left-most value is a a number, gets translated to 5 .<op>(variable) (with the space in there)
+    // might not matter since I don't think jiff supports <value>.<op>(operand) statements anyway, but should check
+    function bin_leaf(left, right, op) {
+        if (t.isIdentifier(left)) {
+            var expr =
                 t.callExpression(
-                    bin_leaf(path.node.left.name, 'add'), [path.node.right]
+                    t.memberExpression(
+                        t.identifier(left.name), t.identifier(op)
+                    ), [right]
+                );
+        }
+        else if (t.isNumericLiteral(left)) {
+            var expr =
+                t.callExpression(
+                    t.memberExpression(
+                        t.numericLiteral(left.value), t.identifier(op)
+                    ), [right]
+                );
+        }
+        else {
+            console.log('Unknown parameter type');
+        }
+        return expr;
+    }
+
+    // transform all other binary ops
+    function bin_nonleaf(left, right, op) {
+        const expr =
+            t.callExpression(
+                t.memberExpression(
+                    left, t.identifier(op)
+                ), [right]
+            );
+        return expr;
+    }
+
+    // traverse & transform nodes in a binary op
+    function bin_rec_transform(path) {
+        if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left)) {
+            path.replaceWith(
+                bin_leaf(
+                    path.node.left, path.node.right, translate_op(path.node.operator)
                 )
             )
-        } else {
+        }
+        else {
             bin_rec_transform(path.get('left'));
             path.replaceWith(
                 bin_nonleaf(
-                    path.node.left, path.node.right, 'add'
+                    path.node.left, path.node.right, translate_op(path.node.operator)
                 )
             )
         }
