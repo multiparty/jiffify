@@ -14,6 +14,14 @@ function translate_op(op) {
     }
 }
 
+var arith = ['+', '-', '/', '*'];
+var arith_ops = new Set(arith);
+var eq = ['===', '=!'];
+var eq_ops = new Set(eq);
+// TODO: might be able to merge in inequality ops to arith ops
+var ineq = ['<', '>', '>=', '<='];
+var ineq_ops = new Set(ineq);
+
 module.exports = function(babel) {
     const t = babel.types;
 
@@ -30,11 +38,14 @@ module.exports = function(babel) {
         // TODO: can't actually have an integer in the left-most position,
         // since (i think) jiff doesn't support <constant>.<op>(variable) statements.
         // should probably just return an error message here instead.
+        // TODO: flipping them would be easy, but this will have to be handled differently
+        // for division once it's implemented (7 / x != x.div(7))
+        // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
         else if (t.isNumericLiteral(left)) {
-            var expr =
-                t.callExpression(
-                    t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]
-                );
+                var expr =
+                    t.callExpression(
+                        t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]
+                    );
         }
         else {
             console.log('Unknown parameter type');
@@ -55,11 +66,17 @@ module.exports = function(babel) {
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left)) {
-            path.replaceWith(
-                bin_leaf(
-                    path.node.left, path.node.right, translate_op(path.node.operator)
+            if (arith_ops.has(path.node.operator)) {
+                path.replaceWith(
+                    bin_leaf(
+                        path.node.left, path.node.right, translate_op(path.node.operator)
+                    )
                 )
-            )
+            }
+            else if (eq_ops.has(path.node.operator)) {
+                // handle '===' and '!=' here
+                // can't do straight equality testing, so need share.<eq_test> (i think)
+            }
         }
         else {
             bin_rec_transform(path.get('left'));
