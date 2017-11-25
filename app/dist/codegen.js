@@ -16,8 +16,6 @@ module.exports = function (babel) {
     var t = babel.types;
 
     // transform left-most binary op
-    // TODO: if the left-most value is a a number, gets translated to 5 .<op>(variable) (with the space in there)
-    // might not matter since I don't think jiff supports <value>.<op>(operand) statements anyway, but should check
     function bin_leaf(left, right, op) {
         if (t.isIdentifier(left)) {
             var expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
@@ -52,6 +50,13 @@ module.exports = function (babel) {
         visitor: {
             BinaryExpression: function BinaryExpression(path) {
                 bin_rec_transform(path);
+            },
+            ConditionalExpression: function ConditionalExpression(path) {
+                if (t.isVariableDeclarator(path.parent)) {
+                    console.log("Entered!");
+                } else {
+                    console.log("Skipped!");
+                }
             }
         }
     };

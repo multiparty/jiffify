@@ -27,4 +27,7 @@ function parseCode(src) {
     return out.code;
 }
 
+var code = 'var a = true ? 5 : 6;\nfalse ? b = 6 : c = 7';
+parseCode(code);
+
 module.exports.parseCode = parseCode;

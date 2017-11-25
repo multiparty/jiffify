@@ -14,13 +14,10 @@ function translate_op(op) {
     }
 }
 
-
 module.exports = function(babel) {
     const t = babel.types;
 
     // transform left-most binary op
-    // TODO: if the left-most value is a a number, gets translated to 5 .<op>(variable) (with the space in there)
-    // might not matter since I don't think jiff supports <value>.<op>(operand) statements anyway, but should check
     function bin_leaf(left, right, op) {
         if (t.isIdentifier(left)) {
             var expr =
@@ -30,13 +27,13 @@ module.exports = function(babel) {
                     ), [right]
                 );
         }
-        // if jiff doesn't support <value>.<op>(operand) statements might need to just return error here
+        // TODO: can't actually have an integer in the left-most position,
+        // since (i think) jiff doesn't support <constant>.<op>(variable) statements.
+        // should probably just return an error message here instead.
         else if (t.isNumericLiteral(left)) {
             var expr =
                 t.callExpression(
-                    t.memberExpression(
-                        t.numericLiteral(left.value), t.identifier(op)
-                    ), [right]
+                    t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]
                 );
         }
         else {
@@ -50,9 +47,7 @@ module.exports = function(babel) {
     function bin_nonleaf(left, right, op) {
         const expr =
             t.callExpression(
-                t.memberExpression(
-                    left, t.identifier(op)
-                ), [right]
+                t.memberExpression(left, t.identifier(op)), [right]
             );
         return expr;
     }
@@ -80,6 +75,14 @@ module.exports = function(babel) {
         visitor: {
             BinaryExpression(path){
                 bin_rec_transform(path);
+            },
+            ConditionalExpression(path){
+                if (t.isVariableDeclarator(path.parent)) {
+                    console.log("Entered!");
+                }
+                else {
+                    console.log("Skipped!");
+                }
             }
         }
     }
