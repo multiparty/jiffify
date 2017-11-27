@@ -1,5 +1,6 @@
 'use strict';
 
+// translate arithmetic operators to jiff function names
 var op_translate = {
     '+': 'add',
     '-': 'sub',
@@ -12,11 +13,6 @@ var op_translate = {
     '!=': 'neq',
     '===': 'eq'
 };
-
-var arith = ['+', '-', '/', '*', '<', '>', '>=', '<='];
-var arith_ops = new Set(arith);
-var eq = ['===', '=!'];
-var eq_ops = new Set(eq);
 
 module.exports = function (babel) {
     var t = babel.types;
@@ -34,6 +30,8 @@ module.exports = function (babel) {
         // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
         else if (t.isNumericLiteral(left)) {
                 var expr = t.callExpression(t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]);
+            } else if (t.isUnaryExpression(left)) {
+                var expr = t.callExpression(t.memberExpression(left, t.identifier(op)), [right]);
             } else {
                 console.log('Unknown parameter type');
                 return null;
@@ -49,8 +47,8 @@ module.exports = function (babel) {
 
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
-        if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left)) {
-            if (arith_ops.has(path.node.operator)) {
+        if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
+            if (path.node.operator in op_translate) {
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
             } else if (eq_ops.has(path.node.operator)) {
                 // handle '===' and '!=' here
@@ -63,6 +61,21 @@ module.exports = function (babel) {
         }
     }
 
+    // transform <cond> ? <expr1> <expr2> to <cond>*<expr1> + !<cond>*expr2
+    function tern_conditional(path) {
+        // handle !<cond> ? <expr1> <expr2> case
+        if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
+            console.log("Hi i am here");
+        }
+        // handle <cond> ? <expr1> <expr2> case
+        else {
+                var left = t.binaryExpression('*', path.node.test, path.node.consequent);
+                var test_neg = t.unaryExpression('!', path.node.test);
+                var right = t.binaryExpression('*', test_neg, path.node.alternate);
+                path.replaceWith(t.binaryExpression('+', left, right));
+            }
+    }
+
     return {
         visitor: {
             BinaryExpression: function BinaryExpression(path) {
@@ -71,7 +84,9 @@ module.exports = function (babel) {
             ConditionalExpression: function ConditionalExpression(path) {
                 if (t.isVariableDeclarator(path.parent)) {
                     console.log("Entered!");
+                    tern_conditional(path);
                 } else {
+                    // not part of a variable declaration (is it just an invalid use or are there other cases?)
                     console.log("Skipped!");
                 }
             }
