@@ -1,24 +1,22 @@
 'use strict';
 
-function translate_op(op) {
-    if (op === '+') {
-        return 'add';
-    } else if (op === '-') {
-        return 'sub';
-    } else if (op === '*') {
-        return 'mult';
-    } else if (op === '/') {
-        return 'div';
-    }
-}
+var op_translate = {
+    '+': 'add',
+    '-': 'sub',
+    '*': 'mult',
+    '/': 'div',
+    '<=': 'lteq',
+    '>=': 'gteq',
+    '<': 'lt',
+    '>': 'gt',
+    '!=': 'neq',
+    '===': 'eq'
+};
 
-var arith = ['+', '-', '/', '*'];
+var arith = ['+', '-', '/', '*', '<', '>', '>=', '<='];
 var arith_ops = new Set(arith);
 var eq = ['===', '=!'];
 var eq_ops = new Set(eq);
-// TODO: might be able to merge in inequality ops to arith ops
-var ineq = ['<', '>', '>=', '<='];
-var ineq_ops = new Set(ineq);
 
 module.exports = function (babel) {
     var t = babel.types;
@@ -33,6 +31,7 @@ module.exports = function (babel) {
         // should probably just return an error message here instead.
         // TODO: flipping them would be easy, but this will have to be handled differently
         // for division once it's implemented (7 / x != x.div(7))
+        // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
         else if (t.isNumericLiteral(left)) {
                 var expr = t.callExpression(t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]);
             } else {
@@ -52,14 +51,15 @@ module.exports = function (babel) {
     function bin_rec_transform(path) {
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left)) {
             if (arith_ops.has(path.node.operator)) {
-                path.replaceWith(bin_leaf(path.node.left, path.node.right, translate_op(path.node.operator)));
-            } else if (arith_ops.has(path.node.operator)) {
+                path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
+            } else if (eq_ops.has(path.node.operator)) {
                 // handle '===' and '!=' here
                 // can't do straight equality testing, so need share.<eq_test> (i think)
+                // TODO: ask kinan & rawane
             }
         } else {
             bin_rec_transform(path.get('left'));
-            path.replaceWith(bin_nonleaf(path.node.left, path.node.right, translate_op(path.node.operator)));
+            path.replaceWith(bin_nonleaf(path.node.left, path.node.right, op_translate[path.node.operator]));
         }
     }
 
