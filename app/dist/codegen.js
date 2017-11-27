@@ -83,7 +83,6 @@ module.exports = function (babel) {
             },
             ConditionalExpression: function ConditionalExpression(path) {
                 if (t.isVariableDeclarator(path.parent)) {
-                    console.log("Entered!");
                     tern_conditional(path);
                 } else {
                     // not part of a variable declaration (is it just an invalid use or are there other cases?)

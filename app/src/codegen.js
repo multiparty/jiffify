@@ -123,7 +123,6 @@ module.exports = function(babel) {
             },
             ConditionalExpression(path){
                 if (t.isVariableDeclarator(path.parent)) {
-                    console.log("Entered!");
                     tern_conditional(path);
                 }
                 else {
