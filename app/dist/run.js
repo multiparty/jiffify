@@ -27,7 +27,7 @@ function parseCode(src) {
     return out.code;
 }
 
-var code = 'var a = b ? 5 : 6';
-console.log(parseCode(code));
+// var code = 'var a = b ? 5 : 6';
+// console.log(parseCode(code));
 
 module.exports.parseCode = parseCode;
