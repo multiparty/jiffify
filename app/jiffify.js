@@ -31,7 +31,6 @@ function translateToJiff(tree, params) {
   } else if (tree.operator === MULT) {
     op = ".mult"
   } else if (tree.operator === DIV) {
-
   }
 
   if (!params.includes(r)) {

@@ -3,12 +3,19 @@
 <head>
   <title>Jiffify!</title>
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="main.css">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="stylesheet" href="codemirror.css">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="monokai.css">
+
+
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script src="codemirror.js"></script>
+    <script src="javascript.js"></script>
 
 </head>
 
@@ -16,20 +23,16 @@
   <div class="parent">
   <h2>Jiffify!</h2>
 
-<!-- <form method="post" action="/submit_hypothesis">
-					Name:<br> <input class="textbox" type="text" name="student_name"/><br><br>
-					Hypothesis:<br><textarea name="hypothesis" cols="30" rows="6"></textarea><br><br>
-					<input type="submit" value="Submit"/><br><br>
-				</form> -->
   <div class="child">
-      <!-- <form method="post" action="/postCode"> -->
       <div class="wrap">
         <h3>input</h3>
-        <textarea id="codeInput" name="codeInput"></textarea>
-      </div>  <!-- </form> -->
+        <!-- <textarea id="code" name="codeInput"></textarea> -->
+        
+        <textarea class="codemirror" id="codeInput" name="codeInput"></textarea>
+      </div>  
       <div class="wrap">
         <h3>output</h3>
-        <textarea id="codeOutput" name="paragraph_text"></textarea>
+        <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
       </div>
   </div>
   <input id="submitBtn" type="submit" value="Submit">
@@ -39,24 +42,45 @@
   </div>
 
   <script>
-    $(document).ready(function() {
-      $('#submitBtn').click(function (){
-        var code = $('#codeInput').val();
-        $.ajax({
-          type: "POST",
-          url: '/postCode',
-          data: {code: code},
-          success: function(data){
-            $('#codeOutput').val(data);
 
-          },
-          dataType: 'text'
-          // success: success,
-          // dataType: dataType
-        });
+  const EDITOR_WIDTH = 500;
+  const EDITOR_HEIGHT = 500;
+
+  var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true
+  });
+
+  var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true
+  });
+
+  inputEditor.setSize(EDITOR_WIDTH, EDITOR_HEIGHT);
+  outputEditor.setSize(EDITOR_WIDTH, EDITOR_HEIGHT);
+
+  const THEME = "monokai";
+  inputEditor.setOption("theme", THEME);
+  outputEditor.setOption("theme", THEME);
+
+  $(document).ready(function() {
+    $('#submitBtn').click(function (){
+      var code = $('#codeInput').val();
+      var text = inputEditor.getValue();
+      
+      $.ajax({
+        type: "POST",
+        url: '/postCode',
+        data: {code: text},
+        success: function(data){
+          outputEditor.setValue(data);
+        },
+        dataType: 'text'
       });
     });
-
+  });
 
   </script>
 </body>
