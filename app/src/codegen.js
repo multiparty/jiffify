@@ -1,26 +1,18 @@
 
-function translate_op(op) {
-    if (op === '+') {
-        return 'add';
-    }
-    else if (op === '-') {
-        return 'sub';
-    }
-    else if (op === '*') {
-        return 'mult';
-    }
-    else if (op === '/') {
-        return 'div';
-    }
-}
+// translate arithmetic operators to jiff function names
+var op_translate = {
+    '+':'add',
+    '-':'sub',
+    '*':'mult',
+    '/':'div',
+    '<=':'lteq',
+    '>=':'gteq',
+    '<':'lt',
+    '>':'gt',
+    '!=':'neq',
+    '===':'eq'
+};
 
-var arith = ['+', '-', '/', '*'];
-var arith_ops = new Set(arith);
-var eq = ['===', '=!'];
-var eq_ops = new Set(eq);
-// TODO: might be able to merge in inequality ops to arith ops
-var ineq = ['<', '>', '>=', '<='];
-var ineq_ops = new Set(ineq);
 
 module.exports = function(babel) {
     const t = babel.types;
@@ -66,26 +58,31 @@ module.exports = function(babel) {
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left)) {
-            if (arith_ops.has(path.node.operator)) {
+            if (path.node.operator in op_translate) {
                 path.replaceWith(
                     bin_leaf(
-                        path.node.left, path.node.right, translate_op(path.node.operator)
+                        path.node.left, path.node.right, op_translate[path.node.operator]
                     )
                 )
             }
             else if (eq_ops.has(path.node.operator)) {
                 // handle '===' and '!=' here
                 // can't do straight equality testing, so need share.<eq_test> (i think)
+                // TODO: ask kinan & rawane
             }
         }
         else {
             bin_rec_transform(path.get('left'));
             path.replaceWith(
                 bin_nonleaf(
-                    path.node.left, path.node.right, translate_op(path.node.operator)
+                    path.node.left, path.node.right, op_translate[path.node.operator]
                 )
             )
         }
+    }
+
+    function tern_conditional(path) {
+        
     }
 
     return {
