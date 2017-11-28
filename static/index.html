@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="codemirror.css">
     <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="monokai.css">
+    <link rel="stylesheet" href="isotope.css">
 
 
     <!-- Scripts -->
@@ -27,9 +27,9 @@
       <div class="wrap">
         <h3>input</h3>
         <!-- <textarea id="code" name="codeInput"></textarea> -->
-        
+
         <textarea class="codemirror" id="codeInput" name="codeInput"></textarea>
-      </div>  
+      </div>
       <div class="wrap">
         <h3>output</h3>
         <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
@@ -43,9 +43,6 @@
 
   <script>
 
-  const EDITOR_WIDTH = 500;
-  const EDITOR_HEIGHT = 500;
-
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
@@ -58,10 +55,7 @@
     matchBrackets: true
   });
 
-  inputEditor.setSize(EDITOR_WIDTH, EDITOR_HEIGHT);
-  outputEditor.setSize(EDITOR_WIDTH, EDITOR_HEIGHT);
-
-  const THEME = "monokai";
+  const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
 
@@ -69,7 +63,7 @@
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
       var text = inputEditor.getValue();
-      
+
       $.ajax({
         type: "POST",
         url: '/postCode',

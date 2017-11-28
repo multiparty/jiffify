@@ -17,8 +17,6 @@ h3 {
 }
 
 textarea {
-  width: 40vw;
-  height: 50vh;
   border: 1px solid black;
 }
 
@@ -54,6 +52,7 @@ a:hover {
 .wrap {
   display: flex;
   flex-direction: column;
+  width: 48%;
 }
 
 #submitBtn {
