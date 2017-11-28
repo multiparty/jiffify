@@ -27,12 +27,7 @@ module.exports = function(babel) {
                     [right]
                 );
         }
-        // TODO: can't actually have an integer in the left-most position,
-        // since (i think) jiff doesn't support <constant>.<op>(variable) statements.
-        // should probably just return an error message here instead.
-        // TODO: flipping them would be easy, but this will have to be handled differently
-        // for division once it's implemented (7 / x != x.div(7))
-        // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
+        // TODO: possibly change, can't have literal in left-most position
         else if (t.isNumericLiteral(left)) {
             var expr =
                 t.callExpression(
@@ -65,8 +60,10 @@ module.exports = function(babel) {
         return expr;
     }
 
+    // TODO: test for '!' presence, add '.not'
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
+        // reached left-most value
         if (t.isIdentifier(path.node.left)
             || t.isNumericLiteral(path.node.left)
             || t.isUnaryExpression(path.node.left)) {
@@ -77,10 +74,8 @@ module.exports = function(babel) {
                     )
                 )
             }
-            else if (eq_ops.has(path.node.operator)) {
-                // handle '===' and '!=' here
-                // can't do straight equality testing, so need share.<eq_test> (i think)
-                // TODO: ask kinan & rawane
+            else {
+                console.log("Unknown binary operation.");
             }
         }
         else {
@@ -97,7 +92,17 @@ module.exports = function(babel) {
     function tern_conditional(path) {
         // handle !<cond> ? <expr1> <expr2> case
         if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
-            console.log("Hi i am here");
+            var left = t.binaryExpression(
+                '*', path.node.test, path.node.consequent
+            );
+            var right = t.binaryExpression(
+                '*', path.node.test.argument, path.node.alternate
+            );
+            path.replaceWith(
+                t.binaryExpression(
+                    '+', left, right
+                )
+            )
         }
         // handle <cond> ? <expr1> <expr2> case
         else {

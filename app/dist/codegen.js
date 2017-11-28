@@ -50,10 +50,8 @@ module.exports = function (babel) {
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
             if (path.node.operator in op_translate) {
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
-            } else if (eq_ops.has(path.node.operator)) {
-                // handle '===' and '!=' here
-                // can't do straight equality testing, so need share.<eq_test> (i think)
-                // TODO: ask kinan & rawane
+            } else {
+                console.log("Unknown binary operation.");
             }
         } else {
             bin_rec_transform(path.get('left'));
@@ -65,7 +63,9 @@ module.exports = function (babel) {
     function tern_conditional(path) {
         // handle !<cond> ? <expr1> <expr2> case
         if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
-            console.log("Hi i am here");
+            var left = t.binaryExpression('*', path.node.test, path.node.consequent);
+            var right = t.binaryExpression('*', path.node.test.argument, path.node.alternate);
+            path.replaceWith(t.binaryExpression('+', left, right));
         }
         // handle <cond> ? <expr1> <expr2> case
         else {
