@@ -27,7 +27,7 @@ module.exports = function(babel) {
                     [right]
                 );
         }
-        // TODO: possibly change, can't have literal in left-most position
+        // TODO: overload arithmetic operators to handle numericLiteral types in left-most position
         else if (t.isNumericLiteral(left)) {
             var expr =
                 t.callExpression(

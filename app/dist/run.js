@@ -2,10 +2,15 @@
 
 var babel = require('babel-core');
 var codegen = require('./codegen');
+var complexity = require('./complexity');
 
 function parseCode(src) {
     var out = babel.transform(src, {
         plugins: [codegen]
+    });
+
+    var test = babel.transform(out.code, {
+        plugins: [complexity]
     });
 
     return out.code;
