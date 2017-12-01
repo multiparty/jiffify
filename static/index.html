@@ -59,6 +59,7 @@
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
 
+
   $(document).ready(function() {
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
@@ -72,7 +73,6 @@
  
           
           data = JSON.parse(data);
-          console.log(data);
           outputEditor.setValue(data.code);
         },
         dataType: 'text'
