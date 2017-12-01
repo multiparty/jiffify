@@ -9,13 +9,17 @@
     <link rel="stylesheet" href="codemirror.css">
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="isotope.css">
-
+    <link rel="stylesheet" href="matchesonscrollbar.css">
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
     <script src="codemirror.js"></script>
     <script src="javascript.js"></script>
+    <script src="match-highlighter.js"></script>
+    <script src="matchesonscrollbar.js"></script>
+    <script src="searchcursor.js"></script>
+    <script src="annotatescrollbar.js"></script>
 
 </head>
 
@@ -26,8 +30,6 @@
   <div class="child">
       <div class="wrap">
         <h3>input</h3>
-        <!-- <textarea id="code" name="codeInput"></textarea> -->
-
         <textarea class="codemirror" id="codeInput" name="codeInput"></textarea>
       </div>
       <div class="wrap">
@@ -46,13 +48,15 @@
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
   });
 
   const THEME = "isotope";
