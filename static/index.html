@@ -69,7 +69,11 @@
         url: '/postCode',
         data: {code: text},
         success: function(data){
-          outputEditor.setValue(data);
+ 
+          
+          data = JSON.parse(data);
+          console.log(data);
+          outputEditor.setValue(data.code);
         },
         dataType: 'text'
       });

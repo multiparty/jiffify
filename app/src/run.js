@@ -7,17 +7,14 @@ const analysis = require('./analysis');
 
 function parseCode(src) {
 
-    var src = "function f(a,b){return a*b; }"
     var converted = babel.transform(src, {
         plugins: [jiffify]
     });
-
     var analyzed = babel.transform(converted.code, {
         plugins: [analysis]
     });
     
-
-    return converted.code
+    return {code: converted.code, costs: analyzed.ast.program.costObject};
 }
 
 module.exports.parseCode = parseCode;

@@ -2,11 +2,15 @@
 const Polynomial = require('polynomial');
 
 var operationCosts = {
-    'add': 0,
-    'subt': 0,
+    'add': '0',
+    'subt': '0',
     'mult': '4x',
     'gt': '3x'
+
+    // 'mult': '4x',
+    // 'gt': '3x'
   };
+
 
 module.exports = function(babel) {
   const t = babel.types;
@@ -17,28 +21,56 @@ module.exports = function(babel) {
 
     if (fnName in operationCosts) {
       var cost = operationCosts[fnName];      
+      return cost;
     } else {
       console.error("Unsupported function found");
     }
-
-    // console.log(parent.plugin.visitor.FunctionDeclaration);
-    // for (var k in parent.plugin.visitor.FunctionDeclaration) {
-    //   console.log(k)
-    // }
-    // console.log('parent', parent.visitor);
-
-    // console.log(path.node);
+    return null;
   }
   
+  // function processBody(body) {
+  //   console.log(body);
+  // }
+
+  function updateGlobalCost(path, cost, functionName) {
+    if (path.parentPath === null) {
+      // if (functionName);
+      var costObject = path.node.costObject;
+      if (functionName in costObject) {
+        // update
+        var prevCost = costObject[functionName];
+        // console.log('prevCost',prevCost, cost);
+        var newCost = Polynomial(cost).add(Polynomial(prevCost))
+        costObject[functionName] = newCost.toString();
+      } else {
+        costObject[functionName] = cost;
+      }
+      console.log('costobj', costObject);
+      
+      return;
+    }
+    if (path.node.type === "FunctionDeclaration") {
+      functionName = path.node.id.name;
+    }
+
+    updateGlobalCost(path.parentPath, cost, functionName);
+ 
+  }
+
 
   return {
     visitor: {
+      Program(path) {
+        path.node.costObject = {};
+      },
       FunctionDeclaration(path) {
-        // console.log('path', path)
+        // console.log(path.node.body)
       },
       CallExpression(path, parent){
-        // console.log('PARENT\n', parent)
-          calculateCost(path, parent);
+          
+          var cost = calculateCost(path, parent);
+          console.log('first cost', cost);
+          updateGlobalCost(path, cost, null);
       }
     }
   }
