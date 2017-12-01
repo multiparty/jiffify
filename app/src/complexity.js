@@ -5,13 +5,12 @@ module.exports = function(babel) {
 
     return {
         visitor: {
-            BinaryExpression(path){
+            BinaryExpression(path) {
                 console.log("Hi!!");
             },
-            CallExpression(path){
+            CallExpression(path) {
                 console.log("HI!");
             }
         }
     }
-
 };
