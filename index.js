@@ -12,9 +12,9 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-var server = app.listen(8081, function() {
+var server = app.listen(8082, function() {
   console.log('Listening on port %d', server.address().port);
-  console.log('http://localhost:8081/');
+  console.log('http://localhost:8082/');
 });
 
 app.use(express.static(__dirname + '/static'));
@@ -24,7 +24,7 @@ app.get('/', function(req,res) {
 });
 
 app.post('/postCode', function(req,res) {
-  // var translatedCode = jiffify.parseCode(req.body.code);
+
   var translatedCode = run.parseCode(req.body.code);
 
   if (translatedCode) {

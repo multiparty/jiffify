@@ -1,6 +1,6 @@
 'use strict';
 
-// translate arithmetic operators to jiff function names
+// // translate arithmetic operators to jiff function names
 var op_translate = {
     '+': 'add',
     '-': 'sub',
@@ -49,12 +49,16 @@ module.exports = function (babel) {
     function bin_rec_transform(path) {
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
             if (path.node.operator in op_translate) {
+
+                // calculateCost(path.node.operator, path);
+
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
             } else {
                 console.log("Unknown binary operation.");
             }
         } else {
             bin_rec_transform(path.get('left'));
+            // calculateCost(path.node.operator, path);
             path.replaceWith(bin_nonleaf(path.node.left, path.node.right, op_translate[path.node.operator]));
         }
     }

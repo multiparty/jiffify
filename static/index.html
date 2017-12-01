@@ -59,6 +59,7 @@
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
 
+
   $(document).ready(function() {
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
@@ -69,7 +70,10 @@
         url: '/postCode',
         data: {code: text},
         success: function(data){
-          outputEditor.setValue(data);
+ 
+          
+          data = JSON.parse(data);
+          outputEditor.setValue(data.code);
         },
         dataType: 'text'
       });

@@ -1,17 +1,19 @@
 'use strict';
 
 var babel = require('babel-core');
-var codegen = require('./codegen');
+var jiffify = require('./jiffify');
+var analysis = require('./analysis');
 
 function parseCode(src) {
-    var out = babel.transform(src, {
-        plugins: [codegen]
+
+    var converted = babel.transform(src, {
+        plugins: [jiffify]
+    });
+    var analyzed = babel.transform(converted.code, {
+        plugins: [analysis]
     });
 
-    return out.code;
+    return { code: converted.code, costs: analyzed.ast.program.costObject };
 }
-
-var code = 'var a = (b === 5) * 5 + !(b === 5) * 6;';
-console.log(parseCode(code));
 
 module.exports.parseCode = parseCode;

@@ -1,15 +1,20 @@
-var babel = require('babel-core');
-var codegen = require('./codegen');
+import * as babylon from "babylon";
+import traverse from "babel-traverse";
+import * as t from "babel-types";
+const babel = require('babel-core');
+const jiffify = require('./jiffify');
+const analysis = require('./analysis');
 
 function parseCode(src) {
-    var out = babel.transform(src, {
-        plugins: [codegen]
+
+    var converted = babel.transform(src, {
+        plugins: [jiffify]
     });
-
-    return out.code
+    var analyzed = babel.transform(converted.code, {
+        plugins: [analysis]
+    });
+    
+    return {code: converted.code, costs: analyzed.ast.program.costObject};
 }
-
-var code = 'var a = (b === 5) * 5 + !(b === 5) * 6;';
-console.log(parseCode(code));
 
 module.exports.parseCode = parseCode;
