@@ -15,9 +15,19 @@ module.exports = function(babel) {
 
     var fnName = path.node.callee.property.name;
 
-    var cost = operationCosts[fnName];
+    if (fnName in operationCosts) {
+      var cost = operationCosts[fnName];      
+    } else {
+      console.error("Unsupported function found");
+    }
 
+    // console.log(parent.plugin.visitor.FunctionDeclaration);
+    // for (var k in parent.plugin.visitor.FunctionDeclaration) {
+    //   console.log(k)
+    // }
+    // console.log('parent', parent.visitor);
 
+    // console.log(path.node);
   }
   
 

@@ -6,6 +6,8 @@ const jiffify = require('./jiffify');
 const analysis = require('./analysis');
 
 function parseCode(src) {
+
+    var src = "function f(a,b){return a*b; }"
     var converted = babel.transform(src, {
         plugins: [jiffify]
     });
@@ -13,6 +15,7 @@ function parseCode(src) {
     var analyzed = babel.transform(converted.code, {
         plugins: [analysis]
     });
+    
 
     return converted.code
 }
