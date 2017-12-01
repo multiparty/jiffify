@@ -17,17 +17,19 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var babel = require('babel-core');
-var codegen = require('./codegen');
+var jiffify = require('./jiffify');
+var analysis = require('./analysis');
 
 function parseCode(src) {
-    var out = babel.transform(src, {
-        plugins: [codegen]
+    var converted = babel.transform(src, {
+        plugins: [jiffify]
     });
 
-    return out.code;
-}
+    var analyzed = babel.transform(converted.code, {
+        plugins: [analysis]
+    });
 
-// var code = 'var a = b ? 5 : 6';
-// console.log(parseCode(code));
+    return converted.code;
+}
 
 module.exports.parseCode = parseCode;

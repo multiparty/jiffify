@@ -1,18 +1,20 @@
 import * as babylon from "babylon";
 import traverse from "babel-traverse";
 import * as t from "babel-types";
-var babel = require('babel-core');
-const codegen = require('./codegen');
+const babel = require('babel-core');
+const jiffify = require('./jiffify');
+const analysis = require('./analysis');
 
 function parseCode(src) {
-    var out = babel.transform(src, {
-        plugins: [codegen]
+    var converted = babel.transform(src, {
+        plugins: [jiffify]
     });
 
-    return out.code
-}
+    var analyzed = babel.transform(converted.code, {
+        plugins: [analysis]
+    });
 
-// var code = 'var a = b ? 5 : 6';
-// console.log(parseCode(code));
+    return converted.code
+}
 
 module.exports.parseCode = parseCode;
