@@ -60,6 +60,45 @@
   outputEditor.setOption("theme", THEME);
 
 
+  /* 
+  
+
+var nonEmpty = false;
+var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+  mode: "application/xml",
+  styleActiveLine: true,
+  lineNumbers: true,
+  lineWrapping: true
+});
+
+function toggleSelProp() {
+  nonEmpty = !nonEmpty;
+  editor.setOption("styleActiveLine", {nonEmpty: nonEmpty});
+  var label = nonEmpty ? 'Disable nonEmpty option' : 'Enable nonEmpty option';
+  document.getElementById('toggleButton').innerText = label;
+}
+
+
+
+
+  function highlightLine(lineNumber) {
+
+        //Line number is zero based index
+        var actualLineNumber = lineNumber - 1;
+
+        //Select editor loaded in the DOM
+        var myEditor = $("#body_EditorSource .CodeMirror");
+        console.log(myEditor);
+        console.log(myEditor[0].CodeMirror);
+
+        var codeMirrorEditor = myEditor[0].CodeMirror;
+            
+        //Set line css class
+        codeMirrorEditor.setLineClass(actualLineNumber, 'background', 'line-error');
+    }
+
+  */
+
   $(document).ready(function() {
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
@@ -74,6 +113,9 @@
           
           data = JSON.parse(data);
           outputEditor.setValue(data.code);
+          console.log(data);
+          // console.log(outputEditor.getTextArea()); 
+        
         },
         dataType: 'text'
       });
