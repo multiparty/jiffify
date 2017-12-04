@@ -9,10 +9,12 @@
     <link rel="stylesheet" href="codemirror.css">
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="isotope.css">
-
+    <link rel="stylesheet" href="tooltip.css">
+    
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
 
     <script src="codemirror.js"></script>
     <script src="javascript.js"></script>
@@ -43,16 +45,43 @@
 
   <script>
 
+  var globalCostObj = null;
+
+  function cursorActivity(cm) {
+    var cursor = cm.getCursor();
+    var line = cm.getLine(cursor.line);
+    // var start = cur.ch;
+    // var end = start;
+
+    if (line.includes('function') && globalCostObj) {
+      for (key in globalCostObj) {
+        if (line.includes(key)) {
+          var cost = globalCostObj[key];
+          console.log(line, globalCostObj[key]);
+          $('body').append("<div class='tooltip'><span class='tooltiptext'>Communication Cost: " + cost + "</span></div>");
+          
+        }
+      }
+    }
+  }
+
+  CodeMirror.defineOption("costAnalysis", false, function(cm, val, old) {
+      cm.on("cursorActivity", cursorActivity);
+    });
+
+
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    costAnalysis: true
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    costAnalysis: true
   });
 
   const THEME = "isotope";
@@ -74,6 +103,7 @@
           
           data = JSON.parse(data);
           outputEditor.setValue(data.code);
+          globalCostObj = data.costs;
         },
         dataType: 'text'
       });
