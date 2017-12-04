@@ -60,10 +60,10 @@ module.exports = function(babel) {
         return expr;
     }
 
-    // TODO: test for '!' presence, add '.not'
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
         // reached left-most value
+        // TODO: might not need isUnaryExpression test here after creating visitor for it
         if (t.isIdentifier(path.node.left)
             || t.isNumericLiteral(path.node.left)
             || t.isUnaryExpression(path.node.left)) {
@@ -121,6 +121,18 @@ module.exports = function(babel) {
         }
     }
 
+    // transform !(<expr>) to not(<expr>) or (<expr>).not()
+    function unary_expression(path) {
+        // TODO: 'not' is hardcoded here, make general
+        var mem = t.memberExpression(path.node.argument, t.identifier('not'));
+
+        path.replaceWith(
+            t.callExpression(
+                mem, []
+            )
+        )
+    }
+
     return {
         visitor: {
             BinaryExpression(path){
@@ -134,6 +146,9 @@ module.exports = function(babel) {
                     // not part of a variable declaration (is it just an invalid use or are there other cases?)
                     console.log("Skipped!");
                 }
+            },
+            UnaryExpression(path) {
+                unary_expression(path);
             }
         }
     }

@@ -29,7 +29,16 @@ function parseCode(src) {
         plugins: [analysis]
     });
 
+    // return converted.code;
     return { code: converted.code, costs: analyzed.ast.program.costObject };
 }
+
+/*
+var src = 'function fun(a,b,c) {var a = (b > c) ? b : c; return a;}'
+
+var new_src = parseCode(src);
+
+console.log(new_src);
+*/
 
 module.exports.parseCode = parseCode;
