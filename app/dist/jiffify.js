@@ -11,7 +11,8 @@ var op_translate = {
     '<': 'lt',
     '>': 'gt',
     '!=': 'neq',
-    '===': 'eq'
+    '===': 'eq',
+    '!': 'not'
 };
 
 module.exports = function (babel) {
@@ -43,7 +44,6 @@ module.exports = function (babel) {
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
         // reached left-most value
-        // TODO: might not need isUnaryExpression test here after creating visitor for it
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
             if (path.node.operator in op_translate) {
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
@@ -73,12 +73,14 @@ module.exports = function (babel) {
             }
     }
 
-    // transform !(<expr>) to not(<expr>) or (<expr>).not()
+    // transform !(<expr>) to (<expr>).not()
     function unary_expression(path) {
-        // TODO: 'not' is hardcoded here, make general
-        var mem = t.memberExpression(path.node.argument, t.identifier('not'));
-
-        path.replaceWith(t.callExpression(mem, []));
+        if (path.node.operator in op_translate) {
+            var mem = t.memberExpression(path.node.argument, t.identifier(op_translate[path.node.operator]));
+            path.replaceWith(t.callExpression(mem, []));
+        } else {
+            console.log("Unknown UnaryExpression operator.");
+        }
     }
 
     return {
@@ -87,12 +89,7 @@ module.exports = function (babel) {
                 bin_rec_transform(path);
             },
             ConditionalExpression: function ConditionalExpression(path) {
-                if (t.isVariableDeclarator(path.parent)) {
-                    tern_conditional(path);
-                } else {
-                    // not part of a variable declaration (is it just an invalid use or are there other cases?)
-                    console.log("Skipped!");
-                }
+                tern_conditional(path);
             },
             UnaryExpression: function UnaryExpression(path) {
                 unary_expression(path);
