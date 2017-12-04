@@ -1,6 +1,5 @@
 var babel = require('babel-core');
 var codegen = require('./codegen');
-var complexity = require('./complexity');
 
 function parseCode(src) {
     var out = babel.transform(src, {
@@ -9,7 +8,7 @@ function parseCode(src) {
     );
 
     var test = babel.transform(out.code, {
-        plugins: [complexity]
+        plugins: [codegen]
         }
     );
 
