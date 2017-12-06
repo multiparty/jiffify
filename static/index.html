@@ -3,17 +3,15 @@
 <head>
   <title>Jiffify!</title>
     <!-- Stylesheets -->
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="codemirror.css">
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="isotope.css">
-
-
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+    
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
     <script src="codemirror.js"></script>
     <script src="javascript.js"></script>
 
@@ -32,7 +30,17 @@
       </div>
       <div class="wrap">
         <h3>output</h3>
-        <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen">Converted Code</button>
+          <button class="tablinks" onclick="openTab(event, 'cost')">Performance Cost</button>        
+        </div>
+        <div id="code" class="tabcontent">
+            <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>            
+        </div>
+        <div id="cost" class="tabcontent">
+            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>            
+        </div>
+        
       </div>
   </div>
   <input id="submitBtn" type="submit" value="Submit">
@@ -43,22 +51,95 @@
 
   <script>
 
+  // var globalCostObj = null;
+
+  function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+
+
+  // function createTooltip(cost) {
+  //   var tooltip = document.createElement('div');
+  //   tooltip.className = 'CodeMirror-hover-tooltip';
+
+  //   var content = document.createTextNode(cost);
+
+  //   tooltip.appendChild(content);
+  //   document.body.append(tooltip);
+
+  // }
+
+  // function cursorActivity(cm) {
+  //   var cursor = cm.getCursor();
+  //   var line = cm.getLine(cursor.line);
+
+  //   if (line.includes('function') && globalCostObj) {
+  //     for (key in globalCostObj) {
+  //       if (line.includes(key)) {
+  //         var cost = globalCostObj[key];
+  //         createTooltip(cost);          
+  //       }
+  //     }
+  //   }
+  // }
+
+  // CodeMirror.defineOption("costAnalysis", false, function(cm, val, old) {
+  //     cm.on("cursorActivity", cursorActivity);
+  //   });
+
+
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    // costAnalysis: true
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    // costAnalysis: true
   });
+
+
+  var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    // costAnalysis: true
+  });
+
+  // var costEditor = CodeMirror.fromTextArea(document)
 
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
+  costEditor.setOption("theme", THEME);
 
+  function stringifyCosts(costs) {
+    var allCosts = "";
+    for (k in costs) {
+      allCosts += k + ": " + costs[k] + "\n";
+    }
+    return allCosts;
+  }
 
   $(document).ready(function() {
     $('#submitBtn').click(function (){
@@ -74,6 +155,9 @@
           
           data = JSON.parse(data);
           outputEditor.setValue(data.code);
+          var allCosts = stringifyCosts(data.costs);
+          costEditor.setValue(allCosts);
+          globalCostObj = data.costs;
         },
         dataType: 'text'
       });
