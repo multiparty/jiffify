@@ -1,56 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Jiffify!</title>
-    <!-- Stylesheets -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="codemirror.css">
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="isotope.css">
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
-    
-    <!-- Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="codemirror.js"></script>
-    <script src="javascript.js"></script>
-
-</head>
-
-<body>
-  <div class="parent">
-  <h2>Jiffify!</h2>
-
-  <div class="child">
-      <div class="wrap">
-        <h3>input</h3>
-        <!-- <textarea id="code" name="codeInput"></textarea> -->
-
-        <textarea class="codemirror" id="codeInput" name="codeInput"></textarea>
-      </div>
-      <div class="wrap">
-        <!-- <h3>output</h3> -->
-        <div class="tab">
-          <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
-          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>        
-        </div>
-        <div id="code" class="tabcontent">
-            <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>            
-        </div>
-        <div id="cost" class="tabcontent">
-            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>            
-        </div>
-        
-      </div>
-  </div>
-  <input id="submitBtn" type="submit" value="Submit">
-  <div class="navbar">
-    <a href="">supported functions</a><p>|</p><a href="">documentation</a><p>|</p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
-  </div>
-  </div>
-
-  <script>
-  document.getElementById("defaultOpen").click();
 
   function openTab(evt, tabName) {
     var i, tabcontent, tablinks;
@@ -141,8 +88,7 @@
   }
 
   $(document).ready(function() {
-    document.getElementById("defaultOpen").click();
-
+    
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
       var text = inputEditor.getValue();
@@ -165,6 +111,6 @@
     });
   });
 
-  </script>
-</body>
-</html>
+
+
+  
