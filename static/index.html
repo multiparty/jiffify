@@ -5,11 +5,11 @@
     <!-- Stylesheets -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="codemirror.css">
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="isotope.css">
+    <link rel="stylesheet" href="style/codemirror.css">
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="stylesheet" href="style/isotope.css">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
-    
+
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="codemirror.js"></script>
@@ -32,15 +32,15 @@
         <!-- <h3>output</h3> -->
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
-          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>        
+          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>
         </div>
         <div id="code" class="tabcontent">
-            <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>            
+            <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
         </div>
         <div id="cost" class="tabcontent">
-            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>            
+            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>
         </div>
-        
+
       </div>
   </div>
   <input id="submitBtn" type="submit" value="Submit">
@@ -67,7 +67,7 @@
     }
 
     // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tabName).style.display = "flex";
     evt.currentTarget.className += " active";
 }
 
@@ -92,7 +92,7 @@
   //     for (key in globalCostObj) {
   //       if (line.includes(key)) {
   //         var cost = globalCostObj[key];
-  //         createTooltip(cost);          
+  //         createTooltip(cost);
   //       }
   //     }
   //   }
@@ -152,8 +152,8 @@
         url: '/postCode',
         data: {code: text},
         success: function(data){
- 
-          
+
+
           data = JSON.parse(data);
           outputEditor.setValue(data.code);
           var allCosts = stringifyCosts(data.costs);
