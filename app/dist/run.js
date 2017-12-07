@@ -1,29 +1,25 @@
-"use strict";
-
-var _babylon = require("babylon");
-
-var babylon = _interopRequireWildcard(_babylon);
-
-var _babelTraverse = require("babel-traverse");
-
-var _babelTraverse2 = _interopRequireDefault(_babelTraverse);
-
-var _babelTypes = require("babel-types");
-
-var t = _interopRequireWildcard(_babelTypes);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+'use strict';
 
 var babel = require('babel-core');
 var jiffify = require('./jiffify');
 var analysis = require('./analysis');
 
+function changeErrorCode(code, errors) {
+    var errorString = "";
+    for (var i = 0; i < errors.length; i++) {
+        // TODO: actually display this shit
+        // console.log('i',errors[i]);
+        // errorString = errorString + ('Error: ' + errors[i].text + JSON.stringify(errors[i].location)).toString();
+    }
+    return errorString;
+}
+
 function parseCode(src) {
     var converted = babel.transform(src, { plugins: [jiffify] });
 
-    console.log(converted.ast.program.error);
+    if (converted.ast.program.error.length > 0) {
+        converted.code = changeErrorCode(converted.code, converted.ast.program.error);
+    }
 
     var analyzed = babel.transform(converted.code, { plugins: [analysis] });
     // return converted code;
