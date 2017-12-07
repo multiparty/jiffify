@@ -22,12 +22,10 @@ module.exports = function (babel) {
         if (t.isIdentifier(left)) {
             var expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
         }
-        // TODO: can't actually have an integer in the left-most position,
-        // since (i think) jiff doesn't support <constant>.<op>(variable) statements.
-        // should probably just return an error message here instead.
-        // TODO: flipping them would be easy, but this will have to be handled differently
+        // TODO: can't actually have an integer in the left-most position
+        // flipping them would be easy, but this will have to be handled differently
         // for division once it's implemented (7 / x != x.div(7))
-        // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
+        // flipping would also be different for subtraction: 7 - a would be a + (-7)
         else if (t.isNumericLiteral(left)) {
                 var expr = t.callExpression(t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]);
             } else if (t.isUnaryExpression(left)) {
@@ -49,9 +47,6 @@ module.exports = function (babel) {
     function bin_rec_transform(path) {
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
             if (path.node.operator in op_translate) {
-
-                // calculateCost(path.node.operator, path);
-
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
             } else if (eq_ops.has(path.node.operator)) {
                 // handle '===' and '!=' here
@@ -60,7 +55,6 @@ module.exports = function (babel) {
             }
         } else {
             bin_rec_transform(path.get('left'));
-            // calculateCost(path.node.operator, path);
             path.replaceWith(bin_nonleaf(path.node.left, path.node.right, op_translate[path.node.operator]));
         }
     }
@@ -89,6 +83,7 @@ module.exports = function (babel) {
     }
 
     function createErrorObj(name, loc, text) {
+        // console.log('creating error obj')
         return { name: name, location: loc, text: text };
     }
 
@@ -101,9 +96,8 @@ module.exports = function (babel) {
                 bin_rec_transform(path);
             },
             ForStatement: function ForStatement(path) {
-                console.error("For statements are not supported");
-                var error = createErrorObj("ForStatement", path.node.loc, "For statements not supported");
-                addError(path.parentPath, error);
+
+                addError(path.parentPath, { name: 'ForStatement', location: path.node.loc, text: 'ForStatements are not supported' });
             },
             ConditionalExpression: function ConditionalExpression(path) {
                 if (t.isVariableDeclarator(path.parent)) {

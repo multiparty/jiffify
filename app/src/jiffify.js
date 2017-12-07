@@ -27,12 +27,10 @@ module.exports = function(babel) {
           [right]
         );
     }
-    // TODO: can't actually have an integer in the left-most position,
-    // since (i think) jiff doesn't support <constant>.<op>(variable) statements.
-    // should probably just return an error message here instead.
-    // TODO: flipping them would be easy, but this will have to be handled differently
+    // TODO: can't actually have an integer in the left-most position
+    // flipping them would be easy, but this will have to be handled differently
     // for division once it's implemented (7 / x != x.div(7))
-    // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
+    // flipping would also be different for subtraction: 7 - a would be a + (-7)
     else if (t.isNumericLiteral(left)) {
         var expr =
             t.callExpression(
