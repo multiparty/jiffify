@@ -7,7 +7,9 @@ var operationCosts = {
   'subt': '0',
   'mult': '4x',
   'gt': '3x',
-  'lt': '3x'
+  'lt': '3x',
+  'not': '0'
+
 };
 
 module.exports = function (babel) {
@@ -49,7 +51,6 @@ module.exports = function (babel) {
       Program: function Program(path) {
         path.node.costObject = {};
       },
-      FunctionDeclaration: function FunctionDeclaration(path) {},
       CallExpression: function CallExpression(path, parent) {
         var cost = calculateCost(path, parent);
         updateGlobalCost(path, cost, null);

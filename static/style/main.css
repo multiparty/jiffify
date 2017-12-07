@@ -53,6 +53,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   width: 48%;
+  max-height: 50vh;
 }
 
 #submitBtn {
@@ -78,6 +79,44 @@ a:hover {
   font-size: 2vw;
 }
 
+/* TAB STYLING */
+
+/* Style the tab */
+.tab {
+  overflow: hidden;
+
+}
+
+/* Style the buttons inside the tab */
+.tablinks {
+  background-color: inherit;
+  font-family: 'Inconsolata', monospace;
+  border: 1px solid black;
+  float: left;
+  outline: none;
+  cursor: pointer;
+  transition: 0.3s;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Change background color of buttons on hover */
+.tablinks:hover {
+  background-color: #910d08;
+}
+
+/* Create an active/current tablink class */
+.tablinks.active {
+  background-color: #f93434;;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  background-color: black;
+  flex-direction: column;
+}
+
 
 @media all and (max-width:425px) {
   #submitBtn {
@@ -90,10 +129,17 @@ a:hover {
     width: 80vw;
     flex-wrap: wrap;
   }
-  textarea {
+  .wrap {
     width: 80vw;
+    padding-bottom:2vh;
+    max-height: 100vh;
   }
   .child {
     flex-direction: column;
+  }
+  .tab {
+    font-size: 7vw;
+    padding-bottom:2vh;
+    margin:0;
   }
 }

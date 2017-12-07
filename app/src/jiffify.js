@@ -120,10 +120,31 @@ function tern_conditional(path) {
     }
 }
 
+
+function addError(path, error) {
+    if (path.parentPath === null) {
+        path.node.error.push(error);
+        return;
+    }
+    addError(path.parentPath, error);
+}
+
+function createErrorObj(name, loc, text) {
+    // console.log('creating error obj')
+    return {name: name, location: loc, text: text};
+}
+
 return {
     visitor: {
+        Program(path) {
+            path.node.error = [];
+        },
         BinaryExpression(path){
             bin_rec_transform(path);
+        },
+        ForStatement(path) {
+
+            addError(path.parentPath, {name: 'ForStatement', location: path.node.loc, text: 'ForStatements are not supported'});
         },
         ConditionalExpression(path){
             if (t.isVariableDeclarator(path.parent)) {

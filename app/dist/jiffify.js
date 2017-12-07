@@ -80,10 +80,30 @@ module.exports = function (babel) {
             }
     }
 
+    function addError(path, error) {
+        if (path.parentPath === null) {
+            path.node.error.push(error);
+            return;
+        }
+        addError(path.parentPath, error);
+    }
+
+    function createErrorObj(name, loc, text) {
+        return { name: name, location: loc, text: text };
+    }
+
     return {
         visitor: {
+            Program: function Program(path) {
+                path.node.error = [];
+            },
             BinaryExpression: function BinaryExpression(path) {
                 bin_rec_transform(path);
+            },
+            ForStatement: function ForStatement(path) {
+                console.error("For statements are not supported");
+                var error = createErrorObj("ForStatement", path.node.loc, "For statements not supported");
+                addError(path.parentPath, error);
             },
             ConditionalExpression: function ConditionalExpression(path) {
                 if (t.isVariableDeclarator(path.parent)) {

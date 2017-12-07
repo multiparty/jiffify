@@ -6,7 +6,9 @@ var operationCosts = {
     'subt': '0',
     'mult': '4x',
     'gt': '3x',
-    'lt': '3x'
+    'lt': '3x',
+    'not': '0'
+
   };
 
 
@@ -49,8 +51,6 @@ module.exports = function(babel) {
     visitor: {
       Program(path) {
         path.node.costObject = {};
-      },
-      FunctionDeclaration(path) {
       },
       CallExpression(path, parent){       
           var cost = calculateCost(path, parent);

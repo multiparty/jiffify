@@ -3,17 +3,15 @@
 <head>
   <title>Jiffify!</title>
     <!-- Stylesheets -->
-    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="codemirror.css">
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="isotope.css">
-
+    <link rel="stylesheet" href="style/codemirror.css">
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="stylesheet" href="style/isotope.css">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
     <script src="codemirror.js"></script>
     <script src="javascript.js"></script>
 
@@ -31,34 +29,116 @@
         <textarea class="codemirror" id="codeInput" name="codeInput"></textarea>
       </div>
       <div class="wrap">
-        <h3>output</h3>
-        <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
+        <!-- <h3>output</h3> -->
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
+          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>
+        </div>
+        <div id="code" class="tabcontent">
+            <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
+        </div>
+        <div id="cost" class="tabcontent">
+            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>
+        </div>
+
       </div>
   </div>
   <input id="submitBtn" type="submit" value="Submit">
   <div class="navbar">
-    <a href="">supported functions</a><p>|</p><a href="">documentation</a><p>|</p><a href="">github</a><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
+    <a href="">supported functions</a><p>|</p><a href="">documentation</a><p>|</p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
   </div>
   </div>
 
   <script>
+  document.getElementById("defaultOpen").click();
+
+  function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "flex";
+    evt.currentTarget.className += " active";
+}
+
+
+
+  // function createTooltip(cost) {
+  //   var tooltip = document.createElement('div');
+  //   tooltip.className = 'CodeMirror-hover-tooltip';
+
+  //   var content = document.createTextNode(cost);
+
+  //   tooltip.appendChild(content);
+  //   document.body.append(tooltip);
+
+  // }
+
+  // function cursorActivity(cm) {
+  //   var cursor = cm.getCursor();
+  //   var line = cm.getLine(cursor.line);
+
+  //   if (line.includes('function') && globalCostObj) {
+  //     for (key in globalCostObj) {
+  //       if (line.includes(key)) {
+  //         var cost = globalCostObj[key];
+  //         createTooltip(cost);
+  //       }
+  //     }
+  //   }
+  // }
+
+  // CodeMirror.defineOption("costAnalysis", false, function(cm, val, old) {
+  //     cm.on("cursorActivity", cursorActivity);
+  //   });
+
 
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    // costAnalysis: true
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
+    matchBrackets: true,
+    // costAnalysis: true
   });
+
+
+  var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    // costAnalysis: true
+  });
+
+  // var costEditor = CodeMirror.fromTextArea(document)
 
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
+  costEditor.setOption("theme", THEME);
 
+  function stringifyCosts(costs) {
+    var allCosts = "";
+    for (k in costs) {
+      allCosts += k + ": " + costs[k] + "\n";
+    }
+    return allCosts;
+  }
 
   /* 
   
@@ -100,6 +180,8 @@ function toggleSelProp() {
   */
 
   $(document).ready(function() {
+    document.getElementById("defaultOpen").click();
+
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
       var text = inputEditor.getValue();
@@ -109,13 +191,13 @@ function toggleSelProp() {
         url: '/postCode',
         data: {code: text},
         success: function(data){
- 
-          
+
+
           data = JSON.parse(data);
           outputEditor.setValue(data.code);
-          console.log(data);
-          // console.log(outputEditor.getTextArea()); 
-        
+          var allCosts = stringifyCosts(data.costs);
+          costEditor.setValue(allCosts);
+          // globalCostObj = data.costs;
         },
         dataType: 'text'
       });

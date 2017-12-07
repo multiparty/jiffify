@@ -18,6 +18,9 @@ var server = app.listen(8082, function() {
 });
 
 app.use(express.static(__dirname + '/static'));
+app.use(express.static(__dirname + '/style'));
+app.use(express.static(__dirname + '/js'));
+
 
 app.get('/', function(req,res) {
   res.sendFile((path.join(__dirname + '/static/index.html')));
@@ -26,8 +29,11 @@ app.get('/', function(req,res) {
 app.post('/postCode', function(req,res) {
 
   var translatedCode = run.parseCode(req.body.code);
+  console.log("Received new POST request at /postCode");
 
+  
   if (translatedCode) {
+    console.log('Successfully translated code');
     res.send(translatedCode);    
   } else {
     res.send('Could not be jiffied')
