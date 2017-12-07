@@ -17,6 +17,8 @@ function changeErrorCode(code, errors) {
 function parseCode(src) {
     var converted = babel.transform(src, { plugins: [jiffify] });
 
+    console.log(converted.code);
+
     if (converted.ast.program.error.length > 0) {
         converted.code = changeErrorCode(converted.code, converted.ast.program.error);
     }

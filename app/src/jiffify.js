@@ -95,7 +95,17 @@ function bin_rec_transform(path) {
 function tern_conditional(path) {
     // handle !<cond> ? <expr1> <expr2> case
     if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
-        console.log("Hi i am here");
+        var left = t.binaryExpression(
+            '*', path.node.test, path.node.consequent
+        );
+        var right = t.binaryExpression(
+            '*', path.node.test.argument, path.node.alternate
+        );
+        path.replaceWith(
+            t.binaryExpression(
+                '+', left, right
+            )
+        )
     }
     // handle <cond> ? <expr1> <expr2> case
     else {
@@ -114,6 +124,13 @@ function tern_conditional(path) {
     }
 }
 
+function unary_statement(path) {
+      path.replaceWith(
+          t.callExpression(
+              t.Identifier('not'), [path.node.argument]
+          )
+      )
+}
 
 function addError(path, error) {
     if (path.parentPath === null) {
@@ -137,7 +154,6 @@ return {
             bin_rec_transform(path);
         },
         ForStatement(path) {
-
             addError(path.parentPath, {name: 'ForStatement', location: path.node.loc, text: 'ForStatements are not supported'});
         },
         ConditionalExpression(path){
@@ -148,6 +164,9 @@ return {
                 // not part of a variable declaration (is it just an invalid use or are there other cases?)
                 console.log("Skipped!");
             }
+        },
+        UnaryExpression(path) {
+            unary_statement(path);
         }
     }
   }
