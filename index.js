@@ -27,11 +27,10 @@ app.get('/', function(req,res) {
 });
 
 app.post('/postCode', function(req,res) {
-
+  console.log("Received new POST request at /postCode");  
   var translatedCode = run.parseCode(req.body.code);
-  console.log("Received new POST request at /postCode");
+  console.log("TRANS", translatedCode)
 
-  
   if (translatedCode) {
     console.log('Successfully translated code');
     res.send(translatedCode);    

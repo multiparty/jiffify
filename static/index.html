@@ -196,6 +196,7 @@ function toggleSelProp() {
         url: '/postCode',
         data: {code: text},
         success: function(data){
+          console.log(data.ast);
 
 
           data = JSON.parse(data);

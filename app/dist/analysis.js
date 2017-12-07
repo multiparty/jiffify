@@ -16,8 +16,12 @@ module.exports = function (babel) {
   var t = babel.types;
 
   function calculateCost(path, parent) {
-
-    var fnName = path.node.callee.property.name;
+    var fnName = '';
+    if (path.node.callee.name) {
+      fnName = path.node.callee.name;
+    } else {
+      fnName = path.node.callee.property.name;
+    }
 
     if (fnName in operationCosts) {
       var cost = operationCosts[fnName];

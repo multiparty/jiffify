@@ -89,7 +89,6 @@ module.exports = function (babel) {
     }
 
     function createErrorObj(name, loc, text) {
-        // console.log('creating error obj')
         return { name: name, location: loc, text: text };
     }
 
@@ -102,8 +101,8 @@ module.exports = function (babel) {
                 bin_rec_transform(path);
             },
             ForStatement: function ForStatement(path) {
-
-                addError(path.parentPath, { name: 'ForStatement', location: path.node.loc, text: 'ForStatements are not supported' });
+                var err = createErrorObj('ForStatement', path.node.loc, 'ForStatements are not supported');
+                addError(path.parentPath, err);
             },
             ConditionalExpression: function ConditionalExpression(path) {
                 if (t.isVariableDeclarator(path.parent)) {
