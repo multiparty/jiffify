@@ -29,8 +29,11 @@ app.get('/', function(req,res) {
 app.post('/postCode', function(req,res) {
 
   var translatedCode = run.parseCode(req.body.code);
+  console.log("Received new POST request at /postCode");
 
+  
   if (translatedCode) {
+    console.log('Successfully translated code');
     res.send(translatedCode);    
   } else {
     res.send('Could not be jiffied')
