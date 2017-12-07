@@ -29,10 +29,10 @@
         <textarea class="codemirror" id="codeInput" name="codeInput"></textarea>
       </div>
       <div class="wrap">
-        <h3>output</h3>
+        <!-- <h3>output</h3> -->
         <div class="tab">
-          <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen">Converted Code</button>
-          <button class="tablinks" onclick="openTab(event, 'cost')">Performance Cost</button>        
+          <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
+          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>        
         </div>
         <div id="code" class="tabcontent">
             <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>            
@@ -45,13 +45,12 @@
   </div>
   <input id="submitBtn" type="submit" value="Submit">
   <div class="navbar">
-    <a href="">supported functions</a><p>|</p><a href="">documentation</a><p>|</p><a href="">github</a><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
+    <a href="">supported functions</a><p>|</p><a href="">documentation</a><p>|</p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
   </div>
   </div>
 
   <script>
-
-  // var globalCostObj = null;
+  document.getElementById("defaultOpen").click();
 
   function openTab(evt, tabName) {
     var i, tabcontent, tablinks;
@@ -142,6 +141,8 @@
   }
 
   $(document).ready(function() {
+    document.getElementById("defaultOpen").click();
+
     $('#submitBtn').click(function (){
       var code = $('#codeInput').val();
       var text = inputEditor.getValue();

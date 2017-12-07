@@ -51,7 +51,6 @@ module.exports = function (babel) {
       Program: function Program(path) {
         path.node.costObject = {};
       },
-      FunctionDeclaration: function FunctionDeclaration(path) {},
       CallExpression: function CallExpression(path, parent) {
         var cost = calculateCost(path, parent);
         updateGlobalCost(path, cost, null);
