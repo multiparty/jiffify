@@ -2,7 +2,6 @@
 
 var babel = require('babel-core');
 var codegen = require('./codegen');
-var complexity = require('./complexity');
 
 function parseCode(src) {
     var out = babel.transform(src, {
@@ -10,13 +9,13 @@ function parseCode(src) {
     });
 
     var test = babel.transform(out.code, {
-        plugins: [complexity]
+        plugins: [codegen]
     });
 
     return out.code;
 }
 
-var code = 'var a = (b === 5) * 5 + !(b === 5) * 6;';
+var code = 'var a = !(b === 5) * 5 + !(b === 5) * 6;';
 console.log(parseCode(code));
 
 module.exports.parseCode = parseCode;

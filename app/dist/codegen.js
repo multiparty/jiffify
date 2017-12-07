@@ -11,7 +11,8 @@ var op_translate = {
     '<': 'lt',
     '>': 'gt',
     '!=': 'neq',
-    '===': 'eq'
+    '===': 'eq',
+    '!': 'not'
 };
 
 module.exports = function (babel) {
