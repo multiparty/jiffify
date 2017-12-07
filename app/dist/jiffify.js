@@ -1,6 +1,6 @@
 'use strict';
 
-// // translate arithmetic operators to jiff function names
+// translate arithmetic operators to jiff function names
 var op_translate = {
     '+': 'add',
     '-': 'sub',
@@ -11,7 +11,8 @@ var op_translate = {
     '<': 'lt',
     '>': 'gt',
     '!=': 'neq',
-    '===': 'eq'
+    '===': 'eq',
+    '!': 'not'
 };
 
 module.exports = function (babel) {
@@ -22,12 +23,7 @@ module.exports = function (babel) {
         if (t.isIdentifier(left)) {
             var expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
         }
-        // TODO: can't actually have an integer in the left-most position,
-        // since (i think) jiff doesn't support <constant>.<op>(variable) statements.
-        // should probably just return an error message here instead.
-        // TODO: flipping them would be easy, but this will have to be handled differently
-        // for division once it's implemented (7 / x != x.div(7))
-        // TODO: flipping would also be different for subtraction: 7 - a would be a + (-7)
+        // TODO: overload arithmetic operators to handle numericLiteral types in left-most position
         else if (t.isNumericLiteral(left)) {
                 var expr = t.callExpression(t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]);
             } else if (t.isUnaryExpression(left)) {
@@ -47,20 +43,15 @@ module.exports = function (babel) {
 
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
+        // reached left-most value
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
             if (path.node.operator in op_translate) {
-
-                // calculateCost(path.node.operator, path);
-
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
-            } else if (eq_ops.has(path.node.operator)) {
-                // handle '===' and '!=' here
-                // can't do straight equality testing, so need share.<eq_test> (i think)
-                // TODO: ask kinan & rawane
+            } else {
+                console.log("Unknown binary operation.");
             }
         } else {
             bin_rec_transform(path.get('left'));
-            // calculateCost(path.node.operator, path);
             path.replaceWith(bin_nonleaf(path.node.left, path.node.right, op_translate[path.node.operator]));
         }
     }
@@ -69,7 +60,9 @@ module.exports = function (babel) {
     function tern_conditional(path) {
         // handle !<cond> ? <expr1> <expr2> case
         if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
-            console.log("Hi i am here");
+            var left = t.binaryExpression('*', path.node.test, path.node.consequent);
+            var right = t.binaryExpression('*', path.node.test.argument, path.node.alternate);
+            path.replaceWith(t.binaryExpression('+', left, right));
         }
         // handle <cond> ? <expr1> <expr2> case
         else {
@@ -80,18 +73,26 @@ module.exports = function (babel) {
             }
     }
 
+    // transform !(<expr>) to (<expr>).not()
+    function unary_expression(path) {
+        if (path.node.operator in op_translate) {
+            var mem = t.memberExpression(path.node.argument, t.identifier(op_translate[path.node.operator]));
+            path.replaceWith(t.callExpression(mem, []));
+        } else {
+            console.log("Unknown UnaryExpression operator.");
+        }
+    }
+
     return {
         visitor: {
             BinaryExpression: function BinaryExpression(path) {
                 bin_rec_transform(path);
             },
             ConditionalExpression: function ConditionalExpression(path) {
-                if (t.isVariableDeclarator(path.parent)) {
-                    tern_conditional(path);
-                } else {
-                    // not part of a variable declaration (is it just an invalid use or are there other cases?)
-                    console.log("Skipped!");
-                }
+                tern_conditional(path);
+            },
+            UnaryExpression: function UnaryExpression(path) {
+                unary_expression(path);
             }
         }
     };
