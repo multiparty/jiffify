@@ -129,8 +129,8 @@ function addError(path, error) {
     addError(path.parentPath, error);
 }
 
-
 function createErrorObj(name, loc, text) {
+    // console.log('creating error obj')
     return {name: name, location: loc, text: text};
 }
 
@@ -143,9 +143,8 @@ return {
             bin_rec_transform(path);
         },
         ForStatement(path) {
-            console.error("For statements are not supported");
-            var error = createErrorObj("ForStatement", path.node.loc, "For statements not supported");
-            addError(path.parentPath, error);
+
+            addError(path.parentPath, {name: 'ForStatement', location: path.node.loc, text: 'ForStatements are not supported'});
         },
         ConditionalExpression(path){
             if (t.isVariableDeclarator(path.parent)) {
