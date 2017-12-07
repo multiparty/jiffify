@@ -11,7 +11,8 @@ var op_translate = {
     '<': 'lt',
     '>': 'gt',
     '!=': 'neq',
-    '===': 'eq'
+    '===': 'eq',
+    '!': 'not'
 };
 
 module.exports = function (babel) {
@@ -22,10 +23,14 @@ module.exports = function (babel) {
         if (t.isIdentifier(left)) {
             var expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
         }
+<<<<<<< HEAD:app/dist/jiffify.js
         // TODO: can't actually have an integer in the left-most position
         // flipping them would be easy, but this will have to be handled differently
         // for division once it's implemented (7 / x != x.div(7))
         // flipping would also be different for subtraction: 7 - a would be a + (-7)
+=======
+        // TODO: overload arithmetic operators to handle numericLiteral types in left-most position
+>>>>>>> a6cfc9bc3b5f8fb7ba5c60038b05ff53ac84c482:app/dist/codegen.js
         else if (t.isNumericLiteral(left)) {
                 var expr = t.callExpression(t.memberExpression(t.numericLiteral(left.value), t.identifier(op)), [right]);
             } else if (t.isUnaryExpression(left)) {
@@ -43,8 +48,10 @@ module.exports = function (babel) {
         return expr;
     }
 
+    // TODO: test for '!' presence, add '.not'
     // traverse & transform nodes in a binary op
     function bin_rec_transform(path) {
+        // reached left-most value
         if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
             if (path.node.operator in op_translate) {
                 path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
