@@ -1,17 +1,16 @@
-
 const Polynomial = require('polynomial');
 
 var operationCosts = {
-    'add': '0',
-    'subt': '0',
-    'mult': '4x',
-    'gt': '3x',
-    'lt': '3x',
-    'not': '0'
-  };
+  'add': '0',
+  'subt': '0',
+  'mult': '4x',
+  'gt': '3x',
+  'lt': '3x',
+  'not': '0'
+};
 
 
-module.exports = function(babel) {
+module.exports = function (babel) {
   const t = babel.types;
 
   function calculateCost(path) {
@@ -19,7 +18,7 @@ module.exports = function(babel) {
     var fnName = path.node.callee.property.name;
 
     if (fnName in operationCosts) {
-      var cost = operationCosts[fnName];      
+      var cost = operationCosts[fnName];
       return cost;
     } else {
       // TODO: change this to proper error message
@@ -38,7 +37,7 @@ module.exports = function(babel) {
         costObject[functionName] = newCost.toString();
       } else {
         costObject[functionName] = cost;
-      }    
+      }
       return;
     }
     if (t.isFunctionDeclaration(path.node.type)) {
@@ -52,9 +51,9 @@ module.exports = function(babel) {
       Program(path) {
         path.node.costObject = {};
       },
-      CallExpression(path, parent){       
-          var cost = calculateCost(path, parent);
-          updateGlobalCost(path, cost, null);
+      CallExpression(path, parent){
+        var cost = calculateCost(path, parent);
+        updateGlobalCost(path, cost, null);
       }
     }
   }
