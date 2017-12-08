@@ -29,7 +29,12 @@ describe('#successCases', function(){
     var code = 'var a = [b,c,d,f,g]; var e = a.reduce("add")';
     var result = jiffify.parseCode(code);
     expect(result.code).to.equal('var a = [b, c, d, f, g];var e = b.add(c).add(d).add(f).add(g);');
+  });
 
+  it('Handling out of order constant', function() {
+    var code = 'function f(a,b) { var c = 7 - a + b; return c}';
+    var result = jiffify.parseCode(code);
+    expect(result.code).to.equal('function f(a, b) {\n  var c = a.mult(-1).add(7).add(b);return c;\n}');
   });
 
 });
