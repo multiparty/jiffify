@@ -16,6 +16,13 @@ var op_translate = {
   '^': 'xor_bit'
 };
 
+// translate functions passed to reduce() into characters stored in AST
+var reduce_op_translate = {
+  'add': '+',
+  'sub': '-',
+  'mult': '*'
+};
+
 module.exports = function (babel) {
   var t = babel.types;
 
@@ -35,10 +42,15 @@ module.exports = function (babel) {
   }
 
   // transform left-most binary op
-  function bin_leaf(left, right, op) {
+  function bin_leaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     var expr;
+    // something like var a = 1 + 1; (can't jiffify it)
     if (t.isNumericLiteral(left) && t.isNumericLiteral(right)) {
-      // TODO: error message here, don't have enough time to jiffify stuff like 1 + 2 + a
+      var err = createErrorObj('UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.');
+      addError(path, err);
     }
     if (t.isIdentifier(left)) {
       expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
@@ -54,7 +66,10 @@ module.exports = function (babel) {
   }
 
   // transform all other binary ops
-  function bin_nonleaf(left, right, op) {
+  function bin_nonleaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     var expr = t.callExpression(t.memberExpression(left, t.identifier(op)), [right]);
     return expr;
   }
@@ -63,11 +78,11 @@ module.exports = function (babel) {
   function bin_rec_transform(path) {
     if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
       if (path.node.operator in op_translate) {
-        path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
+        path.replaceWith(bin_leaf(path));
       }
     } else {
       bin_rec_transform(path.get('left'));
-      path.replaceWith(bin_nonleaf(path.node.left, path.node.right, op_translate[path.node.operator]));
+      path.replaceWith(bin_nonleaf(path));
     }
   }
 
@@ -143,18 +158,9 @@ module.exports = function (babel) {
     return arr_obj;
   }
 
-  function translate_reduce_op(op) {
-    if (op === 'add') {
-      return '+';
-    } else if (op === 'sub') {
-      return '-';
-    } else if (op === 'mult') {
-      return '*';
-    }
-  }
-
+  // build binary expression from reduce() op and passed array
   function build_binary_tree(elems, op) {
-    var op_expr = translate_reduce_op(op);
+    var op_expr = reduce_op_translate[op];
     var final_exp;
     var temp = t.binaryExpression(op_expr, t.identifier(elems[0]), t.identifier(elems[1]));
     for (var i = 2; i < elems.length; i++) {
@@ -205,7 +211,7 @@ module.exports = function (babel) {
       path.node.arrays[array[0]] = array[1];
       return;
     }
-    addArray(path, array);
+    addArray(path.parentPath, array);
   }
 
   /*

@@ -53,10 +53,17 @@ module.exports = function (babel) {
   }
 
   // transform left-most binary op
-  function bin_leaf(left, right, op) {
+  function bin_leaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     var expr;
+    // something like var a = 1 + 1; (can't jiffify it)
     if (t.isNumericLiteral(left) && t.isNumericLiteral(right)) {
-      // TODO: error message here, don't have enough time to jiffify stuff like 1 + 2 + a
+      var err = createErrorObj(
+        'UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.'
+      );
+      addError(path, err);
     }
     if (t.isIdentifier(left)) {
       expr =
@@ -85,7 +92,10 @@ module.exports = function (babel) {
   }
 
   // transform all other binary ops
-  function bin_nonleaf(left, right, op) {
+  function bin_nonleaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     const expr =
       t.callExpression(
         t.memberExpression(left, t.identifier(op)), [right]
@@ -100,18 +110,14 @@ module.exports = function (babel) {
       || t.isUnaryExpression(path.node.left)) {
       if (path.node.operator in op_translate) {
         path.replaceWith(
-          bin_leaf(
-            path.node.left, path.node.right, op_translate[path.node.operator]
-          )
+          bin_leaf(path)
         )
       }
     }
     else {
       bin_rec_transform(path.get('left'));
       path.replaceWith(
-        bin_nonleaf(
-          path.node.left, path.node.right, op_translate[path.node.operator]
-        )
+        bin_nonleaf(path)
       )
     }
   }
@@ -267,7 +273,7 @@ module.exports = function (babel) {
       path.node.arrays[array[0]] = array[1];
       return;
     }
-    addArray(path, array);
+    addArray(path.parentPath, array);
   }
 
   /*
