@@ -176,6 +176,16 @@ function tern_conditional(path) {
           var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
           addError(path.parentPath, err);
         }
+      },
+      Literal(path) {
+        var node = path.node;
+        if (node.type === 'BooleanLiteral') {
+          if (node.value === true) {
+            path.replaceWith(t.numericLiteral(1));
+          } else if (node.value === false) {
+            path.replaceWith(t.numericLiteral(0));
+          }
+        }
       }
     }
   }
