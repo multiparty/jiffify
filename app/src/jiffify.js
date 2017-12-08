@@ -9,7 +9,9 @@ var op_translate = {
   '<': 'lt',
   '>': 'gt',
   '!=': 'neq',
-  '===': 'eq'
+  '===': 'eq',
+  '==': 'eq',
+  '^' : 'xor_bit'
 };
 
 module.exports = function (babel) {

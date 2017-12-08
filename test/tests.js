@@ -23,13 +23,24 @@ describe('#successCases', function(){
     code = 'function f(a) {var y = 1; if (y===true) {var x = true}}';    
     result = jiffify.parseCode(code);
     expect(result.code).to.equal('function f(a) {\n  var y = 1;if (y.eq(1)) {\n    var x = 1;\n  }\n}');
+   
   });
 
   it('Reduce', function() {
     var code = 'var a = [b,c,d,f,g]; var e = a.reduce("add")';
     var result = jiffify.parseCode(code);
     expect(result.code).to.equal('var a = [b, c, d, f, g];var e = b.add(c).add(d).add(f).add(g);');
+    // console.log(result.costs);
   });
+
+  it('Bitwise XOR', function() {
+    var code = 'function f(a) {return a ^ 1;}';
+    var result = jiffify.parseCode(code);
+    expect(result.code).to.equal('function f(a) {\n  return a.xor_bit(1);\n}');
+
+    // TODO: make sure it works with constant on other side
+  });
+
 
   it('Handling out of order constant', function() {
     var code = 'function f(a,b) { var c = 7 - a + b; return c}';
@@ -61,6 +72,10 @@ describe('#errorCases', function() {
     var result = jiffify.parseCode(code);
     expect(result.ast.error.length).to.equal(1);
     expect(result.ast.error[0].name).to.equal("Leakage");
- 
+
+    code = 'function f(a) {if(a) {return 1;}}';
+    expect(result.ast.error.length).to.equal(1);
+    expect(result.ast.error[0].name).to.equal("Leakage");
+    
   });
 });

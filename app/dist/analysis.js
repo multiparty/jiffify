@@ -25,7 +25,7 @@ module.exports = function (babel) {
 
     if (fnName in operationCosts) {
       var cost = operationCosts[fnName];
-      return cost;
+      return { name: fnName, cost: cost };
     } else {
       console.error("Unsupported function found");
     }
@@ -57,7 +57,10 @@ module.exports = function (babel) {
       },
       CallExpression: function CallExpression(path, parent) {
         var cost = calculateCost(path, parent);
-        updateGlobalCost(path, cost, null);
+        if (cost !== null) {
+          updateGlobalCost(path, cost.name, cost.cost);
+        }
+        // TODO: this should probably be an error
       }
     }
   };
