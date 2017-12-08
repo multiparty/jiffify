@@ -295,9 +295,14 @@ module.exports = function (babel) {
       CallExpression(path) {
         // might be hacky, only handles statements of the form
         // <variable>.reduce(<reducer>)
-        if (path.node.callee.property.name === 'reduce') {
-          handle_reduce(path);
+        try {
+          if (path.node.callee.property.name === 'reduce') {
+            handle_reduce(path);
+          }
         }
+        catch (TypeError) {
+            // skipped, no need to handle
+          }
       },
       BinaryExpression(path){
         bin_rec_transform(path);
