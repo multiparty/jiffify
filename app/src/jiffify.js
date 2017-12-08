@@ -14,6 +14,13 @@ var op_translate = {
   '^' : 'xor_bit'
 };
 
+// translate functions passed to reduce() into characters stored in AST
+var reduce_op_translate = {
+  'add': '+',
+  'sub': '-',
+  'mult': '*'
+};
+
 module.exports = function (babel) {
   const t = babel.types;
 
@@ -86,7 +93,7 @@ module.exports = function (babel) {
     return expr;
   }
 
-// traverse & transform nodes in a binary op
+  // traverse & transform nodes in a binary op
   function bin_rec_transform(path) {
     if (t.isIdentifier(path.node.left)
       || t.isNumericLiteral(path.node.left)
@@ -109,7 +116,7 @@ module.exports = function (babel) {
     }
   }
 
-// transform <cond> ? <expr1> <expr2> to <cond>*<expr1> + !<cond>*expr2
+  // transform <cond> ? <expr1> <expr2> to <cond>*<expr1> + !<cond>*expr2
   function tern_conditional(path) {
     // handle !<cond> ? <expr1> <expr2> case
     if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
@@ -190,7 +197,7 @@ module.exports = function (babel) {
    REDUCE STUFF BELOW
    */
 
-// extract array name & elements
+  // extract array name & elements
   function handle_array(path) {
     var arr_name = path.parent.id.name;
     var elems = [];
@@ -201,21 +208,10 @@ module.exports = function (babel) {
     return arr_obj;
   }
 
-  function translate_reduce_op(op) {
-    if (op === 'add') {
-      return '+';
-    }
-    else if (op === 'sub') {
-      return '-';
-    }
-    else if (op === 'mult') {
-      return '*';
-    }
-  }
-
+  // build binary expression from reduce() op and passed array
   function build_binary_tree(elems, op) {
-    var op_expr = translate_reduce_op(op);
-    var final_exp
+    var op_expr = reduce_op_translate[op];
+    var final_exp;
     var temp = t.binaryExpression(op_expr, t.identifier(elems[0]), t.identifier(elems[1]));
     for (var i = 2; i < elems.length; i++) {
       // create new bin exp ('+', cur_exp, elems[i])
@@ -225,8 +221,8 @@ module.exports = function (babel) {
     return final_exp;
   }
 
-// converts statements of the form:
-// var x = y.reduce("<reducer>")
+  // converts statements of the form:
+  // var x = y.reduce("<reducer>")
   function handle_reduce(path) {
     var valid = new Set(['add', 'sub', 'mult']);
     // passing a string to reduce() for now, also hardcoding
@@ -265,7 +261,7 @@ module.exports = function (babel) {
     return findArray(path.parentPath, arr_name);
   }
 
-// insert array into top-level dict in AST
+  // insert array into top-level dict in AST
   function addArray(path, array) {
     if (t.isProgram(path.node)) {
       path.node.arrays[array[0]] = array[1];
@@ -319,7 +315,9 @@ module.exports = function (babel) {
         bin_rec_transform(path);
       },
       ForStatement(path) {
-        var err = createErrorObj('ForStatement', path.node.loc, 'ForStatements are not supported');
+        var err = createErrorObj(
+          'ForStatement', path.node.loc, 'ForStatements are not supported'
+        );
         addError(path.parentPath, err);
       },
       ConditionalExpression(path){
@@ -340,7 +338,9 @@ module.exports = function (babel) {
         if (checkParam(path, node.name)) {
           var conditional = checkControlLeakage(path.parentPath, node.name);  
           if (conditional) {
-            var err = createErrorObj('Leakage', path.node.loc, 'Information leakage from secret share nested in conditional');
+            var err = createErrorObj(
+              'Leakage', path.node.loc, 'Information leakage from secret share nested in conditional'
+            );
             addError(path.parentPath, err);
           } 
         }
