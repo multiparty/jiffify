@@ -8,7 +8,6 @@ var operationCosts = {
     'gt': '3x',
     'lt': '3x',
     'not': '0'
-
   };
 
 
@@ -45,7 +44,7 @@ module.exports = function(babel) {
       }    
       return;
     }
-    if (path.node.type === "FunctionDeclaration") {
+    if (t.isFunctionDeclaration(path.node.type)) {
       functionName = path.node.id.name;
     }
     updateGlobalCost(path.parentPath, cost, functionName);
