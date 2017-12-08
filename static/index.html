@@ -183,6 +183,15 @@ function toggleSelProp() {
     }
 
   */
+  function handleErrors(errors) {
+    var errorStr = '';
+    for (var i = 0; i < errors.length; i++) {
+      var start = errors[i].location.start.line;
+      var end = errors[i].location.end.line;
+      errorStr += 'Error: ' + errors[i].text + ', line: ' + start + '\n';
+    }
+    return errorStr;
+  }
 
   $(document).ready(function() {
     document.getElementById("defaultOpen").click();
@@ -196,14 +205,18 @@ function toggleSelProp() {
         url: '/postCode',
         data: {code: text},
         success: function(data){
-          console.log(data.ast);
-
-
           data = JSON.parse(data);
-          outputEditor.setValue(data.code);
-          var allCosts = stringifyCosts(data.costs);
-          costEditor.setValue(allCosts);
-          // globalCostObj = data.costs;
+
+          var errors = data.ast.error;
+          if (errors) {
+            var errorStr = handleErrors(errors);
+            outputEditor.setValue(errorStr);
+            costEditor.setValue('0');
+          } else {
+            outputEditor.setValue(data.code);
+            var allCosts = stringifyCosts(data.costs);
+            costEditor.setValue(allCosts);
+          }
         },
         dataType: 'text'
       });

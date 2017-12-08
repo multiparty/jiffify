@@ -68,9 +68,9 @@ module.exports = function (babel) {
     // transform <cond> ? <expr1> <expr2> to <cond>*<expr1> + !<cond>*expr2
     function tern_conditional(path) {
         // handle !<cond> ? <expr1> <expr2> case
-        if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
-            console.log("Hi i am here");
-        }
+        if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {}
+        // console.log("Hi i am here");5
+
         // handle <cond> ? <expr1> <expr2> case
         else {
                 var left = t.binaryExpression('*', path.node.test, path.node.consequent);

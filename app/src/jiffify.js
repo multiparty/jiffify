@@ -101,7 +101,7 @@ function bin_rec_transform(path) {
 function tern_conditional(path) {
     // handle !<cond> ? <expr1> <expr2> case
     if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
-        console.log("Hi i am here");
+        // console.log("Hi i am here");5
     }
     // handle <cond> ? <expr1> <expr2> case
     else {

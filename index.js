@@ -28,12 +28,11 @@ app.get('/', function(req,res) {
 
 app.post('/postCode', function(req,res) {
   console.log("Received new POST request at /postCode");  
-  var translatedCode = run.parseCode(req.body.code);
-  console.log("TRANS", translatedCode)
+  var jiffified = run.parseCode(req.body.code);
 
-  if (translatedCode) {
-    console.log('Successfully translated code');
-    res.send(translatedCode);    
+  if (jiffified) {
+    console.log('Sending back object');
+    res.send(jiffified);    
   } else {
     res.send('Could not be jiffied')
   }
