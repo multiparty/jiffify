@@ -6,7 +6,8 @@ var analysis = require('./analysis');
 
 function parseCode(src) {
   var converted = babel.transform(src, {
-    plugins: [jiffify] });
+    plugins: [jiffify]
+  });
 
   if (converted.ast.program.error.length >= 1) {
     console.log("Discovered an error");

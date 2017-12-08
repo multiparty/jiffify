@@ -316,7 +316,17 @@ module.exports = function (babel) {
       UnaryExpression(path) {
         unary_statement(path);
       },
-
+      Identifier(path) {
+        var node = path.node;
+        // check if identifier is an actual param
+        if (checkParam(path, node.name)) {
+          var conditional = checkControlLeakage(path.parentPath, node.name);  
+          if (conditional) {
+            var err = createErrorObj('Leakage', path.node.loc, 'Information leakage from secret share nested in conditional');
+            addError(path.parentPath, err);
+          } 
+        }
+      },
       VariableDeclarator(path) {
         var overwritten = checkParam(path.parentPath, path.node.id.name);
         if (overwritten) {
