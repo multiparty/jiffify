@@ -13,13 +13,6 @@ var op_translate = {
   '===':'eq'
 };
 
-/*
- t.callExpression(
- t.memberExpression(
- t.numericLiteral(left.value), t.identifier(op)),
- [right]
- );
- */
 
 module.exports = function(babel) {
   const t = babel.types;

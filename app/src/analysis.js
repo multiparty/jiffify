@@ -1,13 +1,15 @@
 
 const Polynomial = require('polynomial');
 
+// put reduce as 0 bc it unrolls to an expression with all the ops
 var operationCosts = {
     'add': '0',
     'subt': '0',
     'mult': '4x',
     'gt': '3x',
     'lt': '3x',
-    'not': '0'
+    'not': '0',
+    'reduce': '0'
   };
 
 
