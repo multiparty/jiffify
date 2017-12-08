@@ -76,7 +76,9 @@ module.exports = function (babel) {
 
     function addError(path, error) {
         if (path.parentPath === null) {
+
             path.node.error.push(error);
+            console.log('adding error', error, 'errornode', path.node.error);
             return;
         }
         addError(path.parentPath, error);
@@ -84,6 +86,28 @@ module.exports = function (babel) {
 
     function createErrorObj(name, loc, text) {
         return { name: name, location: loc, text: text };
+    }
+
+    // true if overwritten
+    // false if no overwrite
+    function checkOverwriting(path, name) {
+        if (path.node.type === 'FunctionDeclaration') {
+            var params = path.node.params;
+
+            for (var i = 0; i < params.length; i++) {
+                if (name === params[i].name) {
+                    console.log('true');
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if (path.parentPath === null) {
+            return false;
+        }
+
+        return checkOverwriting(path.parentPath, name);
     }
 
     return {
@@ -104,6 +128,13 @@ module.exports = function (babel) {
                 } else {
                     // not part of a variable declaration (is it just an invalid use or are there other cases?)
                     console.log("Skipped!");
+                }
+            },
+            VariableDeclarator: function VariableDeclarator(path) {
+                var overwritten = checkOverwriting(path.parentPath, path.node.id.name);
+                if (overwritten) {
+                    var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
+                    addError(path.parentPath, err);
                 }
             }
         }

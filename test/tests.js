@@ -25,4 +25,12 @@ describe('#errorCases', function() {
     expect(result.ast.error.length).to.equal(1);
     expect(result.ast.error[0].text).to.equal('ForStatements are not supported');
   });
+
+  it ('Overwriting secret share', function() {
+    var code = 'function f(a,b) {var b = true;}';
+    var result = jiffify.parseCode(code);
+    expect(result.ast.error.length).to.equal(1);
+    expect(result.ast.error[0].name).to.equal("Overwriting");
+    
+  });
 });

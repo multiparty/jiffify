@@ -115,39 +115,68 @@ function tern_conditional(path) {
 }
 
 
-function addError(path, error) {
+  function addError(path, error) {
     if (path.parentPath === null) {
-        path.node.error.push(error);
-        return;
+
+      path.node.error.push(error);
+      return;
     }
     addError(path.parentPath, error);
-}
+  }
 
-function createErrorObj(name, loc, text) {
+  function createErrorObj(name, loc, text) {
     return {name: name, location: loc, text: text};
-}
+  }
 
-return {
-    visitor: {
-        Program(path) {
-            path.node.error = [];
-        },
-        BinaryExpression(path){
-            bin_rec_transform(path);
-        },
-        ForStatement(path) {
-            var err = createErrorObj('ForStatement', path.node.loc, 'ForStatements are not supported');
-            addError(path.parentPath, err);
-        },
-        ConditionalExpression(path){
-            if (t.isVariableDeclarator(path.parent)) {
-                tern_conditional(path);
-            }
-            else {
-                // not part of a variable declaration (is it just an invalid use or are there other cases?)
-                console.log("Skipped!");
-            }
+  // true if overwritten
+  // false if no overwrite
+  function checkOverwriting(path, name) {
+    if (path.node.type === 'FunctionDeclaration') {
+      var params = path.node.params;
+
+      for (var i = 0; i < params.length; i++) {
+        if (name === params[i].name) {
+          return true;
         }
+      }
+      return false;
+    }
+    
+    if (path.parentPath === null) {
+      return false;
+    }
+
+    return checkOverwriting(path.parentPath, name);
+  }
+
+  return {
+    visitor: {
+      Program(path) {
+        path.node.error = [];
+      },
+      BinaryExpression(path){
+        bin_rec_transform(path);
+      },
+      ForStatement(path) {
+        var err = createErrorObj('ForStatement', path.node.loc, 'ForStatements are not supported');
+        addError(path.parentPath, err);
+      },
+      ConditionalExpression(path){
+        if (t.isVariableDeclarator(path.parent)) {
+          tern_conditional(path);
+        }
+        else {
+          // not part of a variable declaration (is it just an invalid use or are there other cases?)
+          console.log("Skipped!");
+        }
+      },
+      VariableDeclarator(path) {
+        var overwritten = checkOverwriting(path.parentPath, path.node.id.name);
+        if (overwritten) {
+          var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
+          addError(path.parentPath, err);
+        }
+      }
     }
   }
 };
