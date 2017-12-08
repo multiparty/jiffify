@@ -326,9 +326,8 @@ module.exports = function (babel) {
           tern_conditional(path);
         }
         else {
-          // not part of a variable declaration or return statement
           // TODO: make sure there are no other valid cases
-          console.log("Skipped: " + path.parent.type);
+          console.log("Skipped node with parent type: " + path.parent.type);
         }
       },
       UnaryExpression(path) {
