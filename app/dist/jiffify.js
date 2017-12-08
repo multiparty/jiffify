@@ -24,7 +24,9 @@ module.exports = function (babel) {
     } else if (op === 'sub') {
       // x - y ==> y.mult(-1).add(x)
       var neg_one = t.unaryExpression('-', t.numericLiteral(1), true);
+      // y.mult(-1)
       var inner_call = t.callExpression(t.memberExpression(t.identifier(right.name), t.identifier('mult')), [neg_one]);
+      // y.mult(-1).add(x)
       expr = t.callExpression(t.memberExpression(inner_call, t.identifier('add')), [left]);
     }
     return expr;
@@ -175,14 +177,19 @@ module.exports = function (babel) {
       var elems = findArray(path, arr_name);
       path.replaceWith(build_binary_tree(elems, op));
     } else {
-      // some kind of error stuff here
+      // function passed to reduce is not supported
+      var err = createErrorObj("UnsupportedFunction", path.node.loc, 'Operation passed is not supported for reduce()');
+      addError(path, err);
     }
   }
 
   function findArray(path, arr_name) {
     if (t.isProgram(path.node)) {
       if (path.node.arrays[arr_name] === undefined) {
-        // array not in arrays dict, error handling etc.
+        // array doesn't exist
+        var err = createErrorObj('NonexistentArray', path.node.loc, 'Array passed is either undefined or out of scope');
+        addError(path, err);
+        return;
       } else {
         return path.node.arrays[arr_name];
       }
@@ -196,7 +203,7 @@ module.exports = function (babel) {
       path.node.arrays[array[0]] = array[1];
       return;
     }
-    addArray(path.parentPath, array);
+    addArray(path, array);
   }
 
   /*
@@ -229,14 +236,14 @@ module.exports = function (babel) {
         addArray(path, handle_array(path));
       },
       CallExpression: function CallExpression(path) {
-        // might be hacky, only handles statements of the form
         // <variable>.reduce(<reducer>)
         try {
           if (path.node.callee.property.name === 'reduce') {
             handle_reduce(path);
           }
         } catch (TypeError) {
-          // skipped, no need to handle
+          // some CallExpressions don't have a 'property' attribute,
+          // but they're handled by other visitors
         }
       },
       BinaryExpression: function BinaryExpression(path) {
