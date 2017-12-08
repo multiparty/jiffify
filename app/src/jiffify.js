@@ -13,34 +13,62 @@ var op_translate = {
   '===':'eq'
 };
 
+/*
+ t.callExpression(
+ t.memberExpression(
+ t.numericLiteral(left.value), t.identifier(op)),
+ [right]
+ );
+ */
 
 module.exports = function(babel) {
   const t = babel.types;
 
+  function handleLeftNumeric(left, right, op) {
+      var expr;
+      if (op === 'add' || op === 'mult') {
+          expr =
+              t.callExpression(
+                  t.memberExpression(
+                      t.identifier(right.name), t.identifier(op)
+                  ), [left]
+              )
+      }
+      else if (op === 'sub') {
+          // x - y ==> y.mult(-1).add(x)
+          var neg_one = t.unaryExpression('-', t.numericLiteral(1), true);
+          var inner_call = t.callExpression(
+              t.memberExpression(
+                  t.identifier(right.name), t.identifier('mult')
+              ), [neg_one]);
+          expr = t.callExpression(
+              t.memberExpression(
+                  inner_call, t.identifier('add')
+              ), [left]
+          )
+      }
+      return expr;
+  }
+
   // transform left-most binary op
   function bin_leaf(left, right, op) {
+      var expr;
+      if (t.isNumericLiteral(left) && t.isNumericLiteral(right)) {
+          // TODO: error message here, don't have enough time to jiffify stuff like 1 + 2 + a
+      }
     if (t.isIdentifier(left)) {
-      var expr =
+      expr =
         t.callExpression(
           t.memberExpression(
             t.identifier(left.name), t.identifier(op)),
           [right]
         );
     }
-    // TODO: can't actually have an integer in the left-most position
-    // flipping them would be easy, but this will have to be handled differently
-    // for division once it's implemented (7 / x != x.div(7))
-    // flipping would also be different for subtraction: 7 - a would be a + (-7)
-    else if (t.isNumericLiteral(left)) {
-        var expr =
-            t.callExpression(
-                t.memberExpression(
-                    t.numericLiteral(left.value), t.identifier(op)),
-                [right]
-            );
+    else if (t.isNumericLiteral(left) && t.isIdentifier(right)) {
+        expr = handleLeftNumeric(left, right, op);
     }
     else if (t.isUnaryExpression(left)) {
-        var expr =
+        expr =
             t.callExpression(
                 t.memberExpression(
                     left, t.identifier(op)
@@ -54,14 +82,14 @@ module.exports = function(babel) {
     return expr;
 }
 
-// transform all other binary ops
-function bin_nonleaf(left, right, op) {
-    const expr =
-        t.callExpression(
-            t.memberExpression(left, t.identifier(op)), [right]
-        );
-    return expr;
-}
+    // transform all other binary ops
+    function bin_nonleaf(left, right, op) {
+        const expr =
+            t.callExpression(
+                t.memberExpression(left, t.identifier(op)), [right]
+            );
+        return expr;
+    }
 
 // traverse & transform nodes in a binary op
 function bin_rec_transform(path) {
@@ -74,11 +102,6 @@ function bin_rec_transform(path) {
                     path.node.left, path.node.right, op_translate[path.node.operator]
                 )
             )
-        }
-        else if (eq_ops.has(path.node.operator)) {
-            // handle '===' and '!=' here
-            // can't do straight equality testing, so need share.<eq_test> (i think)
-            // TODO: ask kinan & rawane
         }
     }
     else {
@@ -125,11 +148,23 @@ function tern_conditional(path) {
 }
 
 function unary_statement(path) {
-      path.replaceWith(
-          t.callExpression(
-              t.Identifier('not'), [path.node.argument]
+      if (path.node.operator === '!') {
+          path.replaceWith(
+              t.callExpression(
+                  t.Identifier('not'), [path.node.argument]
+              )
           )
-      )
+      }
+}
+
+function handle_array(path) {
+      var arr_name = path.parent.id.name;
+      var elems = [];
+      for (var i = 0; i < path.node.elements.length; i++) {
+          elems.push(path.node.elements[i].name);
+      }
+      var arr_obj = [arr_name, elems];
+      return arr_obj;
 }
 
 function addError(path, error) {
@@ -138,6 +173,14 @@ function addError(path, error) {
         return;
     }
     addError(path.parentPath, error);
+}
+
+function addArray(path, array) {
+    if (path.parentPath === null) {
+        path.node.arrays[array[0]] = array[1];
+        return;
+    }
+    addError(path.parentPath, array);
 }
 
 function createErrorObj(name, loc, text) {
@@ -149,6 +192,12 @@ return {
     visitor: {
         Program(path) {
             path.node.error = [];
+            path.node.arrays = {};
+        },
+        // temp solution, won't allow users to have arrays with same
+        // name in different scopes
+        ArrayExpression(path) {
+            addArray(path, handle_array(path));
         },
         BinaryExpression(path){
             bin_rec_transform(path);
