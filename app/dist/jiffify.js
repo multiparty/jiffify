@@ -98,6 +98,24 @@ module.exports = function (babel) {
         }
     }
 
+    function addError(path, error) {
+        if (t.isProgram(path.node)) {
+            path.node.error.push(error);
+            return;
+        }
+        addError(path.parentPath, error);
+    }
+
+    function createErrorObj(name, loc, text) {
+        // console.log('creating error obj')
+        return { name: name, location: loc, text: text };
+    }
+
+    /*
+    REDUCE STUFF BELOW
+     */
+
+    // extract array name & elements
     function handle_array(path) {
         var arr_name = path.parent.id.name;
         var elems = [];
@@ -108,26 +126,69 @@ module.exports = function (babel) {
         return arr_obj;
     }
 
-    function addError(path, error) {
-        if (path.parentPath === null) {
-            path.node.error.push(error);
-            return;
+    function translate_reduce_op(op) {
+        if (op === 'add') {
+            return '+';
+        } else if (op === 'sub') {
+            return '-';
+        } else if (op === 'mult') {
+            return '*';
         }
-        addError(path.parentPath, error);
     }
 
+    function build_binary_tree(elems, op) {
+        var op_expr = translate_reduce_op(op);
+        var final_exp;
+        var temp = t.binaryExpression(op_expr, t.identifier(elems[0]), t.identifier(elems[1]));
+        for (var i = 2; i < elems.length; i++) {
+            // create new bin exp ('+', cur_exp, elems[i])
+            final_exp = t.binaryExpression(op_expr, temp, t.identifier(elems[i]));
+            temp = final_exp;
+        }
+        return final_exp;
+    }
+
+    // converts statements of the form:
+    // var x = y.reduce("<reducer>")
+    function handle_reduce(path) {
+        var valid = new Set(['add', 'sub', 'mult']);
+        // passing a string to reduce() for now, also hardcoding
+        // in arguments[0], but we can test to make sure
+        // arguments.length === 1 in the future
+        if (valid.has(path.node.arguments[0].value)) {
+            var arr_name = path.node.callee.object.name;
+            var op = path.node.arguments[0].value;
+            // retrieve array elements
+            var elems = findArray(path, arr_name);
+            path.replaceWith(build_binary_tree(elems, op));
+        } else {
+            // some kind of error stuff here
+        }
+    }
+
+    function findArray(path, arr_name) {
+        if (t.isProgram(path.node)) {
+            if (path.node.arrays[arr_name] === undefined) {
+                // array not in arrays dict, error handling etc.
+            } else {
+                return path.node.arrays[arr_name];
+            }
+        }
+        return findArray(path.parentPath, arr_name);
+    }
+
+    // insert array into top-level dict in AST
     function addArray(path, array) {
-        if (path.parentPath === null) {
+        if (t.isProgram(path.node)) {
             path.node.arrays[array[0]] = array[1];
             return;
         }
-        addError(path.parentPath, array);
+        addArray(path.parentPath, array);
     }
 
-    function createErrorObj(name, loc, text) {
-        // console.log('creating error obj')
-        return { name: name, location: loc, text: text };
-    }
+    /*
+    END REDUCE STUFF
+     */
 
     return {
         visitor: {
@@ -136,10 +197,17 @@ module.exports = function (babel) {
                 path.node.arrays = {};
             },
 
-            // temp solution, won't allow users to have arrays with same
-            // name in different scopes
+            // temp solution, since it won't allow users to
+            // have arrays with same name in different scopes
             ArrayExpression: function ArrayExpression(path) {
                 addArray(path, handle_array(path));
+            },
+            CallExpression: function CallExpression(path) {
+                // might be hacky, only handles statements of the form
+                // <variable>.reduce(<reducer>)
+                if (path.node.callee.property.name === 'reduce') {
+                    handle_reduce(path);
+                }
             },
             BinaryExpression: function BinaryExpression(path) {
                 bin_rec_transform(path);
