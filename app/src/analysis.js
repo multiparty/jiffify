@@ -14,18 +14,15 @@ var operationCosts = {
 module.exports = function(babel) {
   const t = babel.types;
 
-  function calculateCost(path, parent) {
-    var fnName = '';
-    if (path.node.callee.name) {
-      fnName = path.node.callee.name;
-    } else {
-      fnName = path.node.callee.property.name;
-    }
+  function calculateCost(path) {
+
+    var fnName = path.node.callee.property.name;
 
     if (fnName in operationCosts) {
       var cost = operationCosts[fnName];      
       return cost;
     } else {
+      // TODO: change this to proper error message
       console.error("Unsupported function found");
     }
     return null;
