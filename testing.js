@@ -1,9 +1,4 @@
-var dict = {
-    '<=': "value1",
-    key2: "value2"
-    // etc.
-};
+adict = {a: ['b', 'c', 'd']}
 
-var a = '<=' in dict;
+console.log(adict['a']);
 
-console.log(a);

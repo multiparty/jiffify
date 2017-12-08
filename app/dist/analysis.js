@@ -14,12 +14,22 @@ var operationCosts = {
 module.exports = function (babel) {
   var t = babel.types;
 
+<<<<<<< HEAD
   function calculateCost(path, parent) {
     var fnName = '';
     if (path.node.callee.name) {
       fnName = path.node.callee.name;
     } else {
       fnName = path.node.callee.property.name;
+=======
+  function calculateCost(path) {
+
+    var fnName;
+    try {
+      fnName = path.node.callee.property.name;
+    } catch (TypeError) {
+      fnName = path.node.callee.name;
+>>>>>>> origin/ben
     }
 
     if (fnName in operationCosts) {
