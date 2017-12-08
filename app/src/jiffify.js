@@ -130,7 +130,9 @@ function tern_conditional(path) {
 
   // true if overwritten
   // false if no overwrite
-  function checkOverwriting(path, name) {
+
+
+  function checkParam(path, name) {
     if (path.node.type === 'FunctionDeclaration') {
       var params = path.node.params;
 
@@ -146,7 +148,20 @@ function tern_conditional(path) {
       return false;
     }
 
-    return checkOverwriting(path.parentPath, name);
+    return checkParam(path.parentPath, name);
+  }
+
+  function checkControlLeakage(path, name) {
+    
+    if (path.node.type === 'IfStatement') {
+      return true;
+    }
+
+    if (path.parentPath === null) {
+      return false;
+    }
+
+    return checkControlLeakage(path.parentPath, name);
   }
 
   return {
@@ -171,7 +186,7 @@ function tern_conditional(path) {
         }
       },
       VariableDeclarator(path) {
-        var overwritten = checkOverwriting(path.parentPath, path.node.id.name);
+        var overwritten = checkParam(path.parentPath, path.node.id.name);
         if (overwritten) {
           var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
           addError(path.parentPath, err);
@@ -185,6 +200,17 @@ function tern_conditional(path) {
           } else if (node.value === false) {
             path.replaceWith(t.numericLiteral(0));
           }
+        }
+      },
+      Identifier(path) {
+        var node = path.node;
+        // check if identifier is an actual param
+        if (checkParam(path, node.name)) {
+          var conditional = checkControlLeakage(path.parentPath, node.name);  
+          if (conditional) {
+            var err = createErrorObj('Leakage', path.node.loc, 'Information leakage from secret share nested in conditional');
+            addError(path.parentPath, err);
+          } 
         }
       }
     }

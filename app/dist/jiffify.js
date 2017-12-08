@@ -89,7 +89,9 @@ module.exports = function (babel) {
 
   // true if overwritten
   // false if no overwrite
-  function checkOverwriting(path, name) {
+
+
+  function checkParam(path, name) {
     if (path.node.type === 'FunctionDeclaration') {
       var params = path.node.params;
 
@@ -105,7 +107,20 @@ module.exports = function (babel) {
       return false;
     }
 
-    return checkOverwriting(path.parentPath, name);
+    return checkParam(path.parentPath, name);
+  }
+
+  function checkControlLeakage(path, name) {
+
+    if (path.node.type === 'IfStatement') {
+      return true;
+    }
+
+    if (path.parentPath === null) {
+      return false;
+    }
+
+    return checkControlLeakage(path.parentPath, name);
   }
 
   return {
@@ -129,7 +144,7 @@ module.exports = function (babel) {
         }
       },
       VariableDeclarator: function VariableDeclarator(path) {
-        var overwritten = checkOverwriting(path.parentPath, path.node.id.name);
+        var overwritten = checkParam(path.parentPath, path.node.id.name);
         if (overwritten) {
           var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
           addError(path.parentPath, err);
@@ -142,6 +157,17 @@ module.exports = function (babel) {
             path.replaceWith(t.numericLiteral(1));
           } else if (node.value === false) {
             path.replaceWith(t.numericLiteral(0));
+          }
+        }
+      },
+      Identifier: function Identifier(path) {
+        var node = path.node;
+        // check if identifier is an actual param
+        if (checkParam(path, node.name)) {
+          var conditional = checkControlLeakage(path.parentPath, node.name);
+          if (conditional) {
+            var err = createErrorObj('Leakage', path.node.loc, 'Information leakage from secret share nested in conditional');
+            addError(path.parentPath, err);
           }
         }
       }
