@@ -4,16 +4,16 @@ var expect = require('chai').expect;
 var jiffify = require('../app/src/run');
 
 describe('#successCases', function(){
-  it('If statement', function() {
-    var code = 'function f(a,b){ var a = !(a>b) ? a : b; return a;}';
-    var result = jiffify.parseCode(code);
+  // it('If statement', function() {
+  //   var code = 'function f(a,b){ var a = !(a>b) ? a : b; return a;}';
+  //   var result = jiffify.parseCode(code);
 
-    var output = 'function f(a, b) {var a = !a.gt(b) ? a : b; return a;})';
-    expect(result.ast.error).to.equal(undefined);
-    // expect(result.code.trim()).to.equal(output);
+  //   var output = 'function f(a, b) {var a = !a.gt(b) ? a : b; return a;})';
+  //   expect(result.ast.error).to.equal(undefined);
+  //   // expect(result.code.trim()).to.equal(output);
     
-    // check cost
-  });
+  //   // check cost
+  // });
 
   it('Boolean', function() {
     var code = 'function f(a) {var x = true}';
@@ -22,6 +22,14 @@ describe('#successCases', function(){
 
     code = 'function f(a) {var y = 1; if (y===true) {var x = true}}';    
     result = jiffify.parseCode(code);
+    expect(result.code).to.equal('function f(a) {\n  var y = 1;if (y.eq(1)) {\n    var x = 1;\n  }\n}');
+  });
+
+  it('Reduce', function() {
+    var code = 'var a = [b,c,d,f,g]; var e = a.reduce("add")';
+    var result = jiffify.parseCode(code);
+    expect(result.code).to.equal('var a = [b, c, d, f, g];var e = b.add(c).add(d).add(f).add(g);');
+
   });
 
 });
