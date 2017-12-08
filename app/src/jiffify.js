@@ -274,6 +274,20 @@ function addArray(path, array) {
 END REDUCE STUFF
  */
 
+
+function checkControlLeakage(path, name) {
+  
+  if (path.node.type === 'IfStatement') {
+    return true;
+  }
+  
+  if (path.parentPath === null) {
+    return false;
+  }
+  
+  return checkControlLeakage(path.parentPath, name);
+  }
+
 return {
     visitor: {
         Program(path) {
@@ -296,7 +310,8 @@ return {
             bin_rec_transform(path);
         },
         ForStatement(path) {
-            addError(path.parentPath, {name: 'ForStatement', location: path.node.loc, text: 'ForStatements are not supported'});
+          var err = createErrorObj('ForStatement', path.node.loc, 'ForStatements are not supported');
+          addError(path.parentPath, err);
         },
         ConditionalExpression(path){
             if (t.isVariableDeclarator(path.parent)) {
@@ -309,9 +324,25 @@ return {
         },
         UnaryExpression(path) {
             unary_statement(path);
+        },
+
+        VariableDeclarator(path) {
+          var overwritten = checkParam(path.parentPath, path.node.id.name);
+          if (overwritten) {
+            var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
+            addError(path.parentPath, err);
+          }
+        }, Literal(path) {
+          var node = path.node;
+          if (node.type === 'BooleanLiteral') {
+            if (node.value === true) {
+              path.replaceWith(t.numericLiteral(1));
+            } else if (node.value === false) {
+              path.replaceWith(t.numericLiteral(0));
+            }
+          }
         }
       }
     }
-  }
 };
 
