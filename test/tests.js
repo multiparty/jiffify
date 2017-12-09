@@ -64,7 +64,14 @@ describe('#errorCases', function() {
     var result = jiffify.parseCode(code);
     expect(result.ast.error.length).to.equal(1);
     expect(result.ast.error[0].name).to.equal("Overwriting");
-    
+
+    code = 'function f(a,b) {b = true;}';
+    result = jiffify.parseCode(code);
+    // console.log(result.ast.error)
+    // expect(result.ast.error.length).to.equal(1);
+    // expect(result.ast.error[0].name).to.equal("Overwriting");
+
+
   });
 
   it ('Leaking conditional', function() {

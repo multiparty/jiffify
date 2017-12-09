@@ -344,8 +344,22 @@ module.exports = function (babel) {
       UnaryExpression(path) {
         unary_statement(path);
       },
-      Identifier(path) {
+      AssignmentExpression(path) {
         var node = path.node;
+        if (node !== undefined) {
+          if (node.left !== undefined) {
+            if (node.left.name !== undefined) {
+              var overwritten = checkParam(path.parentPath, node.left.name);
+              if (overwritten) {
+                var err = createErrorObj('Overwriting', node.loc, 'Cannot overwrite secret shares: ' + node.left.name);
+                addError(path.parentPath, err);
+              }  
+            }    
+          }      
+        }
+      },
+      Identifier(path) {    
+        var node = path.node; 
         // check if identifier is an actual param
         if (checkParam(path, node.name)) {
           var conditional = checkControlLeakage(path.parentPath, node.name);  
@@ -373,8 +387,6 @@ module.exports = function (babel) {
             path.replaceWith(t.numericLiteral(0));
           }
         }
-
-        
       }
     }
   }

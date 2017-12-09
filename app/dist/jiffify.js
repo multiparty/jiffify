@@ -75,10 +75,8 @@ module.exports = function (babel) {
   }
 
   function checkSupportedOperator(operator, path) {
-    console.log('operator', operator);
     if (operator === '&' || operator === '|') {
       var err = createErrorObj('Unsupported operator', path.node.loc, operator + ' are not supported');
-      console.log(err);
       addError(path.parentPath, err);
       return false;
     }
@@ -273,13 +271,26 @@ module.exports = function (babel) {
         if (t.isVariableDeclarator(path.parent) || t.isReturnStatement(path.parent)) {
           tern_conditional(path);
         } else {
-          // not part of a variable declaration or return statement
           // TODO: make sure there are no other valid cases
-          console.log("Skipped: " + path.parent.type);
+          console.log("Skipped node with parent type: " + path.parent.type);
         }
       },
       UnaryExpression: function UnaryExpression(path) {
         unary_statement(path);
+      },
+      AssignmentExpression: function AssignmentExpression(path) {
+        var node = path.node;
+        if (node !== undefined) {
+          if (node.left !== undefined) {
+            if (node.left.name !== undefined) {
+              var overwritten = checkParam(path.parentPath, node.left.name);
+              if (overwritten) {
+                var err = createErrorObj('Overwriting', node.loc, 'Cannot overwrite secret shares: ' + node.left.name);
+                addError(path.parentPath, err);
+              }
+            }
+          }
+        }
       },
       Identifier: function Identifier(path) {
         var node = path.node;
