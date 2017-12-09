@@ -76,50 +76,16 @@
     evt.currentTarget.className += " active";
 }
 
-
-
-  // function createTooltip(cost) {
-  //   var tooltip = document.createElement('div');
-  //   tooltip.className = 'CodeMirror-hover-tooltip';
-
-  //   var content = document.createTextNode(cost);
-
-  //   tooltip.appendChild(content);
-  //   document.body.append(tooltip);
-
-  // }
-
-  // function cursorActivity(cm) {
-  //   var cursor = cm.getCursor();
-  //   var line = cm.getLine(cursor.line);
-
-  //   if (line.includes('function') && globalCostObj) {
-  //     for (key in globalCostObj) {
-  //       if (line.includes(key)) {
-  //         var cost = globalCostObj[key];
-  //         createTooltip(cost);
-  //       }
-  //     }
-  //   }
-  // }
-
-  // CodeMirror.defineOption("costAnalysis", false, function(cm, val, old) {
-  //     cm.on("cursorActivity", cursorActivity);
-  //   });
-
-
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
-    // costAnalysis: true
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
-    // costAnalysis: true
   });
 
 
@@ -127,10 +93,8 @@
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
-    // costAnalysis: true
   });
 
-  // var costEditor = CodeMirror.fromTextArea(document)
 
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
@@ -145,52 +109,24 @@
     return allCosts;
   }
 
-  /* 
-  
+  var LINE_CLASS = "CodeMirror-activeline-background";
 
-var nonEmpty = false;
-var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-  mode: "application/xml",
-  styleActiveLine: true,
-  lineNumbers: true,
-  lineWrapping: true
-});
-
-function toggleSelProp() {
-  nonEmpty = !nonEmpty;
-  editor.setOption("styleActiveLine", {nonEmpty: nonEmpty});
-  var label = nonEmpty ? 'Disable nonEmpty option' : 'Enable nonEmpty option';
-  document.getElementById('toggleButton').innerText = label;
-}
-
-
-
-
-  function highlightLine(lineNumber) {
-
-        //Line number is zero based index
-        var actualLineNumber = lineNumber - 1;
-
-        //Select editor loaded in the DOM
-        var myEditor = $("#body_EditorSource .CodeMirror");
-        console.log(myEditor);
-        console.log(myEditor[0].CodeMirror);
-
-        var codeMirrorEditor = myEditor[0].CodeMirror;
-            
-        //Set line css class
-        codeMirrorEditor.setLineClass(actualLineNumber, 'background', 'line-error');
+  function highlightErrors(inputEditor, lines) {
+    for (var i = 0; i < lines.length; i++) {
+      inputEditor.addLineClass(lines[i].start - 1, 'background', LINE_CLASS);
     }
+  }
 
-  */
   function handleErrors(errors) {
     var errorStr = '';
+    var lines = [];
     for (var i = 0; i < errors.length; i++) {
       var start = errors[i].location.start.line;
       var end = errors[i].location.end.line;
       errorStr += 'Error: ' + errors[i].text + ', line: ' + start + '\n';
+      lines.push({start: start, end: end});
     }
-    return errorStr;
+    return {errorStr: errorStr, lines: lines};
   }
 
   $(document).ready(function() {
@@ -209,9 +145,10 @@ function toggleSelProp() {
 
           var errors = data.ast.error;
           if (errors) {
-            var errorStr = handleErrors(errors);
-            outputEditor.setValue(errorStr);
+            var errorObj = handleErrors(errors);
+            outputEditor.setValue(errorObj.errorStr);
             costEditor.setValue('0');
+            highlightErrors(inputEditor, errorObj.lines);
           } else {
             outputEditor.setValue(data.code);
             var allCosts = stringifyCosts(data.costs);
