@@ -78,4 +78,16 @@ describe('#errorCases', function() {
     expect(result.ast.error[0].name).to.equal("Leakage");
     
   });
+
+  it('Certain bitwise operators not supported (and, or)', function() {
+    var code = 'function f(a,b) { return a & b; }';
+    var result = jiffify.parseCode(code);
+    expect(result.ast.error.length).to.equal(1);
+    expect(result.ast.error[0].name).to.equal('Unsupported operator');
+    
+    code = 'function f(a,b) { return a | b; }';
+    result = jiffify.parseCode(code);
+    expect(result.ast.error.length).to.equal(1);
+    expect(result.ast.error[0].name).to.equal('Unsupported operator');
+  });
 });

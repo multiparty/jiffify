@@ -84,11 +84,23 @@ module.exports = function (babel) {
     return expr;
   }
 
+  function checkSupportedOperator(operator, path) {
+    console.log('operator',operator);
+    if (operator === '&' || operator === '|') {
+      var err = createErrorObj('Unsupported operator', path.node.loc, operator + ' are not supported');
+      addError(path.parentPath, err);
+      return false;
+    } 
+    return true;
+  }
 // traverse & transform nodes in a binary op
   function bin_rec_transform(path) {
     if (t.isIdentifier(path.node.left)
       || t.isNumericLiteral(path.node.left)
       || t.isUnaryExpression(path.node.left)) {
+      if (!checkSupportedOperator(path.node.operator, path)) {
+        return;
+      }
       if (path.node.operator in op_translate) {
         path.replaceWith(
           bin_leaf(
@@ -349,6 +361,8 @@ module.exports = function (babel) {
             path.replaceWith(t.numericLiteral(0));
           }
         }
+
+        
       }
     }
   }

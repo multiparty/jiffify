@@ -3,10 +3,11 @@ const Polynomial = require('polynomial');
 var operationCosts = {
   'add': '0',
   'subt': '0',
-  'mult': '4x',
+  'mult': 'x(2x + 3) = 2x3 + 3x',
   'gt': '3x',
   'lt': '3x',
-  'not': '0'
+  'not': '0', 
+  'xor_bit': '4x'
 };
 
 
