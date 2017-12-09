@@ -14,6 +14,13 @@ var op_translate = {
   '^' : 'xor_bit'
 };
 
+// translate functions passed to reduce() into characters stored in AST
+var reduce_op_translate = {
+  'add': '+',
+  'sub': '-',
+  'mult': '*'
+};
+
 module.exports = function (babel) {
   const t = babel.types;
 
@@ -30,10 +37,12 @@ module.exports = function (babel) {
     else if (op === 'sub') {
       // x - y ==> y.mult(-1).add(x)
       var neg_one = t.unaryExpression('-', t.numericLiteral(1), true);
+      // y.mult(-1)
       var inner_call = t.callExpression(
         t.memberExpression(
           t.identifier(right.name), t.identifier('mult')
         ), [neg_one]);
+      // y.mult(-1).add(x)
       expr = t.callExpression(
         t.memberExpression(
           inner_call, t.identifier('add')
@@ -44,10 +53,17 @@ module.exports = function (babel) {
   }
 
   // transform left-most binary op
-  function bin_leaf(left, right, op) {
+  function bin_leaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     var expr;
+    // something like var a = 1 + 1; (can't jiffify it)
     if (t.isNumericLiteral(left) && t.isNumericLiteral(right)) {
-      // TODO: error message here, don't have enough time to jiffify stuff like 1 + 2 + a
+      var err = createErrorObj(
+        'UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.'
+      );
+      addError(path, err);
     }
     if (t.isIdentifier(left)) {
       expr =
@@ -70,13 +86,16 @@ module.exports = function (babel) {
     }
     else {
       console.log('Unknown parameter type');
-      return null
+      return null;
     }
     return expr;
   }
 
   // transform all other binary ops
-  function bin_nonleaf(left, right, op) {
+  function bin_nonleaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     const expr =
       t.callExpression(
         t.memberExpression(left, t.identifier(op)), [right]
@@ -85,7 +104,6 @@ module.exports = function (babel) {
   }
 
   function checkSupportedOperator(operator, path) {
-    console.log('operator',operator);
     if (operator === '&' || operator === '|') {
       var err = createErrorObj('Unsupported operator', path.node.loc, operator + ' are not supported');
       addError(path.parentPath, err);
@@ -103,23 +121,19 @@ module.exports = function (babel) {
       }
       if (path.node.operator in op_translate) {
         path.replaceWith(
-          bin_leaf(
-            path.node.left, path.node.right, op_translate[path.node.operator]
-          )
+          bin_leaf(path)
         )
       }
     }
     else {
       bin_rec_transform(path.get('left'));
       path.replaceWith(
-        bin_nonleaf(
-          path.node.left, path.node.right, op_translate[path.node.operator]
-        )
+        bin_nonleaf(path)
       )
     }
   }
 
-// transform <cond> ? <expr1> <expr2> to <cond>*<expr1> + !<cond>*expr2
+  // transform <cond> ? <expr1> <expr2> to <cond>*<expr1> + !<cond>*expr2
   function tern_conditional(path) {
     // handle !<cond> ? <expr1> <expr2> case
     if (t.isUnaryExpression(path.node.test) && path.node.test.operator === '!') {
@@ -152,6 +166,7 @@ module.exports = function (babel) {
     }
   }
 
+  // !(<expr>) ==> not(<expr>)
   function unary_statement(path) {
     if (path.node.operator === '!') {
       path.replaceWith(
@@ -174,9 +189,6 @@ module.exports = function (babel) {
     return {name: name, location: loc, text: text};
   }
 
-  // true if overwritten
-  // false if no overwrite
-
 
   function checkParam(path, name) {
     if (path.node.type === 'FunctionDeclaration') {
@@ -196,11 +208,7 @@ module.exports = function (babel) {
     return checkParam(path.parentPath, name);
   }
 
-  /*
-   REDUCE STUFF BELOW
-   */
-
-// extract array name & elements
+  // extract array name & elements
   function handle_array(path) {
     var arr_name = path.parent.id.name;
     var elems = [];
@@ -211,21 +219,10 @@ module.exports = function (babel) {
     return arr_obj;
   }
 
-  function translate_reduce_op(op) {
-    if (op === 'add') {
-      return '+';
-    }
-    else if (op === 'sub') {
-      return '-';
-    }
-    else if (op === 'mult') {
-      return '*';
-    }
-  }
-
+  // build binary expression from reduce() op and passed array
   function build_binary_tree(elems, op) {
-    var op_expr = translate_reduce_op(op);
-    var final_exp
+    var op_expr = reduce_op_translate[op];
+    var final_exp;
     var temp = t.binaryExpression(op_expr, t.identifier(elems[0]), t.identifier(elems[1]));
     for (var i = 2; i < elems.length; i++) {
       // create new bin exp ('+', cur_exp, elems[i])
@@ -235,30 +232,45 @@ module.exports = function (babel) {
     return final_exp;
   }
 
-// converts statements of the form:
-// var x = y.reduce("<reducer>")
+  // converts statements of the form:
+  // var x = y.reduce("<reducer>")
   function handle_reduce(path) {
     var valid = new Set(['add', 'sub', 'mult']);
-    // passing a string to reduce() for now, also hardcoding
-    // in arguments[0], but we can test to make sure
-    // arguments.length === 1 in the future
-    if (valid.has(path.node.arguments[0].value)) {
+    // too many args
+    if (path.node.arguments.length > 1) {
+      var err = createErrorObj(
+        "TooManyArgs", path.node.loc, 'Can only pass 1 function to reduce()'
+      );
+      addError(path, err);
+    }
+    // valid
+    else if (valid.has(path.node.arguments[0].value)) {
       var arr_name = path.node.callee.object.name;
       var op = path.node.arguments[0].value;
-      // retrieve array elements
       var elems = findArray(path, arr_name);
       path.replaceWith(build_binary_tree(elems, op));
     }
+    // unsupported function
     else {
-      // some kind of error stuff here
+      var err = createErrorObj(
+        "UnsupportedFunction", path.node.loc, 'Operation passed is not supported for reduce()'
+      );
+      addError(path, err);
     }
   }
 
+  // go to AST root and retrieve array if it is stored, else return error
   function findArray(path, arr_name) {
     if (t.isProgram(path.node)) {
+      // array doesn't exist
       if (path.node.arrays[arr_name] === undefined) {
-        // array not in arrays dict, error handling etc.
+        var err = createErrorObj(
+          'NonexistentArray', path.node.loc, 'Array passed is either undefined or out of scope'
+        );
+        addError(path, err);
+        return;
       }
+      // valid
       else {
         return path.node.arrays[arr_name];
       }
@@ -266,7 +278,7 @@ module.exports = function (babel) {
     return findArray(path.parentPath, arr_name);
   }
 
-// insert array into top-level dict in AST
+  // insert array into top-level dict in AST
   function addArray(path, array) {
     if (t.isProgram(path.node)) {
       path.node.arrays[array[0]] = array[1];
@@ -274,11 +286,6 @@ module.exports = function (babel) {
     }
     addArray(path.parentPath, array);
   }
-
-  /*
-   END REDUCE STUFF
-   */
-
 
   function checkControlLeakage(path, name) {
 
@@ -305,7 +312,6 @@ module.exports = function (babel) {
         addArray(path, handle_array(path));
       },
       CallExpression(path) {
-        // might be hacky, only handles statements of the form
         // <variable>.reduce(<reducer>)
         try {
           if (path.node.callee.property.name === 'reduce') {
@@ -313,23 +319,26 @@ module.exports = function (babel) {
           }
         }
         catch (TypeError) {
-            // skipped, no need to handle
+            // some CallExpressions don't have a 'property' attribute,
+            // but they're handled by other visitors so skip them
           }
       },
       BinaryExpression(path){
         bin_rec_transform(path);
       },
       ForStatement(path) {
-        var err = createErrorObj('ForStatement', path.node.loc, 'ForStatements are not supported');
+        var err = createErrorObj(
+          'ForStatement', path.node.loc, 'ForStatements are not supported'
+        );
         addError(path.parentPath, err);
       },
       ConditionalExpression(path){
-        if (t.isVariableDeclarator(path.parent)) {
+        if (t.isVariableDeclarator(path.parent) || t.isReturnStatement(path.parent)) {
           tern_conditional(path);
         }
         else {
-          // not part of a variable declaration (is it just an invalid use or are there other cases?)
-          console.log("Skipped!");
+          // TODO: make sure there are no other valid cases
+          console.log("Skipped node with parent type: " + path.parent.type);
         }
       },
       UnaryExpression(path) {
@@ -341,7 +350,9 @@ module.exports = function (babel) {
         if (checkParam(path, node.name)) {
           var conditional = checkControlLeakage(path.parentPath, node.name);  
           if (conditional) {
-            var err = createErrorObj('Leakage', path.node.loc, 'Information leakage from secret share nested in conditional');
+            var err = createErrorObj(
+              'Leakage', path.node.loc, 'Information leakage from secret share nested in conditional'
+            );
             addError(path.parentPath, err);
           } 
         }
@@ -352,7 +363,8 @@ module.exports = function (babel) {
           var err = createErrorObj('Overwriting', path.node.loc, 'Cannot overwrite secret shares: ' + path.node.id.name);
           addError(path.parentPath, err);
         }
-      }, Literal(path) {
+      },
+      Literal(path) {
         var node = path.node;
         if (node.type === 'BooleanLiteral') {
           if (node.value === true) {

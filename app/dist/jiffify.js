@@ -16,6 +16,13 @@ var op_translate = {
   '^': 'xor_bit'
 };
 
+// translate functions passed to reduce() into characters stored in AST
+var reduce_op_translate = {
+  'add': '+',
+  'sub': '-',
+  'mult': '*'
+};
+
 module.exports = function (babel) {
   var t = babel.types;
 
@@ -26,17 +33,24 @@ module.exports = function (babel) {
     } else if (op === 'sub') {
       // x - y ==> y.mult(-1).add(x)
       var neg_one = t.unaryExpression('-', t.numericLiteral(1), true);
+      // y.mult(-1)
       var inner_call = t.callExpression(t.memberExpression(t.identifier(right.name), t.identifier('mult')), [neg_one]);
+      // y.mult(-1).add(x)
       expr = t.callExpression(t.memberExpression(inner_call, t.identifier('add')), [left]);
     }
     return expr;
   }
 
   // transform left-most binary op
-  function bin_leaf(left, right, op) {
+  function bin_leaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     var expr;
+    // something like var a = 1 + 1; (can't jiffify it)
     if (t.isNumericLiteral(left) && t.isNumericLiteral(right)) {
-      // TODO: error message here, don't have enough time to jiffify stuff like 1 + 2 + a
+      var err = createErrorObj('UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.');
+      addError(path, err);
     }
     if (t.isIdentifier(left)) {
       expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
@@ -52,7 +66,10 @@ module.exports = function (babel) {
   }
 
   // transform all other binary ops
-  function bin_nonleaf(left, right, op) {
+  function bin_nonleaf(path) {
+    var left = path.node.left;
+    var right = path.node.right;
+    var op = op_translate[path.node.operator];
     var expr = t.callExpression(t.memberExpression(left, t.identifier(op)), [right]);
     return expr;
   }
@@ -74,11 +91,11 @@ module.exports = function (babel) {
         return;
       }
       if (path.node.operator in op_translate) {
-        path.replaceWith(bin_leaf(path.node.left, path.node.right, op_translate[path.node.operator]));
+        path.replaceWith(bin_leaf(path));
       }
     } else {
       bin_rec_transform(path.get('left'));
-      path.replaceWith(bin_nonleaf(path.node.left, path.node.right, op_translate[path.node.operator]));
+      path.replaceWith(bin_nonleaf(path));
     }
   }
 
@@ -99,6 +116,7 @@ module.exports = function (babel) {
       }
   }
 
+  // !(<expr>) ==> not(<expr>)
   function unary_statement(path) {
     if (path.node.operator === '!') {
       path.replaceWith(t.callExpression(t.Identifier('not'), [path.node.argument]));
@@ -116,10 +134,6 @@ module.exports = function (babel) {
   function createErrorObj(name, loc, text) {
     return { name: name, location: loc, text: text };
   }
-
-  // true if overwritten
-  // false if no overwrite
-
 
   function checkParam(path, name) {
     if (path.node.type === 'FunctionDeclaration') {
@@ -139,10 +153,6 @@ module.exports = function (babel) {
     return checkParam(path.parentPath, name);
   }
 
-  /*
-   REDUCE STUFF BELOW
-   */
-
   // extract array name & elements
   function handle_array(path) {
     var arr_name = path.parent.id.name;
@@ -154,18 +164,9 @@ module.exports = function (babel) {
     return arr_obj;
   }
 
-  function translate_reduce_op(op) {
-    if (op === 'add') {
-      return '+';
-    } else if (op === 'sub') {
-      return '-';
-    } else if (op === 'mult') {
-      return '*';
-    }
-  }
-
+  // build binary expression from reduce() op and passed array
   function build_binary_tree(elems, op) {
-    var op_expr = translate_reduce_op(op);
+    var op_expr = reduce_op_translate[op];
     var final_exp;
     var temp = t.binaryExpression(op_expr, t.identifier(elems[0]), t.identifier(elems[1]));
     for (var i = 2; i < elems.length; i++) {
@@ -180,27 +181,38 @@ module.exports = function (babel) {
   // var x = y.reduce("<reducer>")
   function handle_reduce(path) {
     var valid = new Set(['add', 'sub', 'mult']);
-    // passing a string to reduce() for now, also hardcoding
-    // in arguments[0], but we can test to make sure
-    // arguments.length === 1 in the future
-    if (valid.has(path.node.arguments[0].value)) {
-      var arr_name = path.node.callee.object.name;
-      var op = path.node.arguments[0].value;
-      // retrieve array elements
-      var elems = findArray(path, arr_name);
-      path.replaceWith(build_binary_tree(elems, op));
-    } else {
-      // some kind of error stuff here
+    // too many args
+    if (path.node.arguments.length > 1) {
+      var err = createErrorObj("TooManyArgs", path.node.loc, 'Can only pass 1 function to reduce()');
+      addError(path, err);
     }
+    // valid
+    else if (valid.has(path.node.arguments[0].value)) {
+        var arr_name = path.node.callee.object.name;
+        var op = path.node.arguments[0].value;
+        var elems = findArray(path, arr_name);
+        path.replaceWith(build_binary_tree(elems, op));
+      }
+      // unsupported function
+      else {
+          var err = createErrorObj("UnsupportedFunction", path.node.loc, 'Operation passed is not supported for reduce()');
+          addError(path, err);
+        }
   }
 
+  // go to AST root and retrieve array if it is stored, else return error
   function findArray(path, arr_name) {
     if (t.isProgram(path.node)) {
+      // array doesn't exist
       if (path.node.arrays[arr_name] === undefined) {
-        // array not in arrays dict, error handling etc.
-      } else {
-        return path.node.arrays[arr_name];
+        var err = createErrorObj('NonexistentArray', path.node.loc, 'Array passed is either undefined or out of scope');
+        addError(path, err);
+        return;
       }
+      // valid
+      else {
+          return path.node.arrays[arr_name];
+        }
     }
     return findArray(path.parentPath, arr_name);
   }
@@ -213,10 +225,6 @@ module.exports = function (babel) {
     }
     addArray(path.parentPath, array);
   }
-
-  /*
-   END REDUCE STUFF
-   */
 
   function checkControlLeakage(path, name) {
 
@@ -244,14 +252,14 @@ module.exports = function (babel) {
         addArray(path, handle_array(path));
       },
       CallExpression: function CallExpression(path) {
-        // might be hacky, only handles statements of the form
         // <variable>.reduce(<reducer>)
         try {
           if (path.node.callee.property.name === 'reduce') {
             handle_reduce(path);
           }
         } catch (TypeError) {
-          // skipped, no need to handle
+          // some CallExpressions don't have a 'property' attribute,
+          // but they're handled by other visitors so skip them
         }
       },
       BinaryExpression: function BinaryExpression(path) {
@@ -262,11 +270,12 @@ module.exports = function (babel) {
         addError(path.parentPath, err);
       },
       ConditionalExpression: function ConditionalExpression(path) {
-        if (t.isVariableDeclarator(path.parent)) {
+        if (t.isVariableDeclarator(path.parent) || t.isReturnStatement(path.parent)) {
           tern_conditional(path);
         } else {
-          // not part of a variable declaration (is it just an invalid use or are there other cases?)
-          console.log("Skipped!");
+          // not part of a variable declaration or return statement
+          // TODO: make sure there are no other valid cases
+          console.log("Skipped: " + path.parent.type);
         }
       },
       UnaryExpression: function UnaryExpression(path) {
