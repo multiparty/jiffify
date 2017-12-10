@@ -17,26 +17,18 @@ module.exports = function (babel) {
 
   function calculateCost(path) {
     var operationName;
-
+    var cost = null;
     try {
       operationName = path.node.callee.property.name;
     } catch (TypeError) {
       operationName = path.node.callee.name;
     }
 
-    console.log(path.node);
-
     if (operationName in operationCosts) {
-      var cost = operationCosts[operationName];
+      cost = operationCosts[operationName];
     }
 
-    // if (fnName in operationCosts) {
-    //   var cost = operationCosts[fnName];      
-    //   return {name: fnName, cost:cost};
-    // } else {
-    //   console.error("Unsupported function found");
-    // }
-    // return null;
+    return cost;
   }
 
   function updateGlobalCost(path, cost, functionName) {
@@ -51,7 +43,8 @@ module.exports = function (babel) {
       }
       return;
     }
-    if (t.isFunctionDeclaration(path.node.type)) {
+
+    if (path.node.type === 'FunctionDeclaration') {
       functionName = path.node.id.name;
     }
     // Propagate back up to Program level
@@ -66,13 +59,12 @@ module.exports = function (babel) {
       CallExpression: function CallExpression(path, parent) {
         var cost = calculateCost(path);
         var type = path.node.arguments[0].type;
-        console.log('cost', cost.cost);
 
         if (type === 'NumericLiteral') {
-          cost.cost = 0;
+          cost = 0;
         }
         if (cost !== null) {
-          updateGlobalCost(path, cost.cost, cost.name);
+          updateGlobalCost(path, cost, null);
         }
         // TODO: this should probably be an error
       }
