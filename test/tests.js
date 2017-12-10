@@ -4,7 +4,7 @@ var expect = require('chai').expect;
 var jiffify = require('../app/src/run');
 
 describe('#successCases', function(){
-  // it('If statement', function() {
+  // it('Ternary if statement', function() {
   //   var code = 'function f(a,b){ var a = !(a>b) ? a : b; return a;}';
   //   var result = jiffify.parseCode(code);
 
@@ -43,9 +43,16 @@ describe('#successCases', function(){
 
 
   it('Handling out of order constant', function() {
+
     var code = 'function f(a,b) { var c = 7 - a + b; return c}';
     var result = jiffify.parseCode(code);
     expect(result.code).to.equal('function f(a, b) {\n  var c = a.mult(-1).add(7).add(b);return c;\n}');
+  });
+
+  it ('Cost of operations with constants', function() {
+    var code = 'function f(a) {return 7 * a}';
+    var result = jiffify.parseCode(code);
+    expect(result.costs['f']).to.equal(0);
   });
 
 });
@@ -67,9 +74,8 @@ describe('#errorCases', function() {
 
     code = 'function f(a,b) {b = true;}';
     result = jiffify.parseCode(code);
-    // console.log(result.ast.error)
-    // expect(result.ast.error.length).to.equal(1);
-    // expect(result.ast.error[0].name).to.equal("Overwriting");
+    expect(result.ast.error.length).to.equal(1);
+    expect(result.ast.error[0].name).to.equal("Overwriting");
 
 
   });
