@@ -26,8 +26,8 @@
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'input')" id="inputOpen"><h3>input</h3></button>
         </div>
-        <div id="input" class="tabcontent"> 
-          <textarea class="codemirror" id="codeInput" name="paragraph_text"></textarea>            
+        <div id="input" class="tabcontent2">
+          <textarea class="codemirror" id="codeInput" name="paragraph_text"></textarea>
         </div>
       </div>
       <div class="wrap">
@@ -46,7 +46,7 @@
   </div>
   <input id="submitBtn" type="submit" value="Submit">
   <div class="navbar">
-    <a href="">supported functions</a><p>|</p><a href="">documentation</a><p>|</p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
+    <p><a href="supported.html">supported functions</a></p><p>|</p><p><a href="">documentation</a></p><p>|</p><p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a></p><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
   </div>
   </div>
 
@@ -58,6 +58,7 @@
     var i, tabcontent, tablinks;
 
     tabcontent = document.getElementsByClassName("tabcontent");
+    if (tabName != "input") {
     for (i = 0; i < tabcontent.length; i++) {
       if (tabcontent[i].id !== 'input') {
         tabcontent[i].style.display = "none";
@@ -71,47 +72,32 @@
           tablinks[i].className = tablinks[i].className.replace(" active", "");
         }
     }
+  }
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(tabName).style.display = "flex";
     evt.currentTarget.className += " active";
+
 }
-
-  // function highlightMatchingLines(cm) {
-  //   var cursor = cm.getCursor();
-  //   var line = cm.getLine(cursor.line);
-
-  //   console.log('cm', cm, line);
-  //   console.log('textarea', cm.getTextArea());
-
-  
-  // }
-
-  // CodeMirror.defineOption("highlightMatchingLines", false, function(cm, val, old) {
-  //     cm.on("cursorActivity", highlightMatchingLines);
-  //   });
-
 
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
-    // highlightMatchingLines: true
+    matchBrackets: true,
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
-    // highlightMatchingLines: true
+    matchBrackets: true,
   });
 
 
   var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true
-    // highlightMatchingLines: true
+    matchBrackets: true,
   });
+
 
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
