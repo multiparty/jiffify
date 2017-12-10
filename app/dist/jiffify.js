@@ -225,6 +225,7 @@ module.exports = function (babel) {
   }
 
   function checkControlLeakage(path, name) {
+    console.log(path.node.type);
 
     if (path.node.type === 'IfStatement') {
       return true;
@@ -235,6 +236,19 @@ module.exports = function (babel) {
     }
 
     return checkControlLeakage(path.parentPath, name);
+  }
+
+  function checkRecursion(name, path) {
+    if (t.isProgram(path)) {
+      return false;
+    }
+
+    if (path.node.type === 'FunctionDeclaration') {
+      if (name == path.node.id.name) {
+        return true;
+      }
+    }
+    return checkRecursion(name, path.parentPath);
   }
 
   return {
@@ -250,6 +264,15 @@ module.exports = function (babel) {
         addArray(path, handle_array(path));
       },
       CallExpression: function CallExpression(path) {
+
+        if (t.isIdentifier(path.node.callee)) {
+          if (checkRecursion(path.node.callee.name, path.parentPath)) {
+            var err = createErrorObj("Recursion", path.node.loc, "Recursion branching leaks data on inputs");
+            // addError(err, path);
+            // addError(err, path.parentPath);
+          }
+        }
+
         // <variable>.reduce(<reducer>)
         try {
           if (path.node.callee.property.name === 'reduce') {
@@ -294,11 +317,13 @@ module.exports = function (babel) {
       },
       Identifier: function Identifier(path) {
         var node = path.node;
+
         // check if identifier is an actual param
         if (checkParam(path, node.name)) {
           var conditional = checkControlLeakage(path.parentPath, node.name);
           if (conditional) {
-            var err = createErrorObj('Leakage', path.node.loc, 'Information leakage from secret share nested in conditional');
+            var loc = {};
+            var err = createErrorObj('Leakage', loc, 'Information leakage from secret share nested in conditional');
             addError(path.parentPath, err);
           }
         }
