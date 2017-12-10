@@ -5,7 +5,7 @@ var Polynomial = require('polynomial');
 var operationCosts = {
   'add': '0',
   'subt': '0',
-  'mult': 'x(2x + 3) = 2x3 + 3x',
+  'mult': '2x+3', //  = 2x3 + 3x
   'gt': '3x',
   'lt': '3x',
   'not': '0',
