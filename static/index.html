@@ -76,25 +76,42 @@
     evt.currentTarget.className += " active";
 }
 
+  // function highlightMatchingLines(cm) {
+  //   var cursor = cm.getCursor();
+  //   var line = cm.getLine(cursor.line);
+
+  //   console.log('cm', cm, line);
+  //   console.log('textarea', cm.getTextArea());
+
+  
+  // }
+
+  // CodeMirror.defineOption("highlightMatchingLines", false, function(cm, val, old) {
+  //     cm.on("cursorActivity", highlightMatchingLines);
+  //   });
+
+
   var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true,
+    matchBrackets: true
+    // highlightMatchingLines: true
   });
 
   var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true,
+    matchBrackets: true
+    // highlightMatchingLines: true
   });
 
 
   var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
     lineNumbers: true,
     styleActiveLine: true,
-    matchBrackets: true,
+    matchBrackets: true
+    // highlightMatchingLines: true
   });
-
 
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
