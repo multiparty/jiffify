@@ -16,6 +16,10 @@ h3 {
   font-size: 4vw;
 }
 
+p {
+  font-size: 2vw;
+  margin-top: 2vh;
+}
 textarea {
   border: 1px solid black;
 }
@@ -47,6 +51,17 @@ a:hover {
   width: 85vw;
   padding: 1vw;
 
+}
+/*styling for supported functions paage*/
+.sfs {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 60vw;
+}
+dl {
+  margin: 0;
+  margin-top: 1vh;
 }
 
 .wrap {
@@ -84,7 +99,6 @@ a:hover {
 /* Style the tab */
 .tab {
   overflow: hidden;
-
 }
 
 /* Style the buttons inside the tab */
@@ -117,6 +131,12 @@ a:hover {
   flex-direction: column;
 }
 
+
+/*secondary styling for input*/
+.tabcontent2 {
+  background-color: black;
+  flex-direction: column;
+}
 
 @media all and (max-width:425px) {
   #submitBtn {
