@@ -30,7 +30,7 @@ module.exports = function (babel) {
       expr =
         t.callExpression(
           t.memberExpression(
-            t.identifier(right.name), t.identifier(op)
+            right, t.identifier(op)
           ), [left]
         )
     }
@@ -40,7 +40,7 @@ module.exports = function (babel) {
       // y.mult(-1)
       var inner_call = t.callExpression(
         t.memberExpression(
-          t.identifier(right.name), t.identifier('mult')
+          right, t.identifier('mult')
         ), [neg_one]);
       // y.mult(-1).add(x)
       expr = t.callExpression(
@@ -66,7 +66,7 @@ module.exports = function (babel) {
           [right]
         );
     }
-    else if (t.isNumericLiteral(left) && t.isIdentifier(right)) {
+    else if (t.isNumericLiteral(left)) {
       expr = handleLeftNumeric(left, right, op);
     }
     else if (t.isUnaryExpression(left)) {
