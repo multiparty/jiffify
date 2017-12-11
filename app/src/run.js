@@ -9,7 +9,6 @@ function parseCode(src) {
   );
 
   if (converted.ast.program.error.length >= 1) {
-    console.log("Discovered an error");
     return {code: {}, ast: converted.ast.program, costs: {}};
   }
 
