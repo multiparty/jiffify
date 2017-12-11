@@ -1,13 +1,32 @@
 const Polynomial = require('polynomial');
 
-var operationCosts = {
+var shareCosts = {
   'add': '0',
   'subt': '0',
-  'mult': 'x(2x + 3) = 2x3 + 3x',
-  'gt': '3x',
-  'lt': '3x',
+  'mult': '2n+3', 
+  'gt': '2ln+4l+2n+2',
+  'lt': '2ln+4l+2n+2',
+  'lte': '2ln+4l+2n+2',
+  'gte': '2ln+4l+2n+2',
+  'eq': '4ln+8l+6n+7',
+  'neq': '4ln+8l+6n+7',
   'not': '0', 
-  'xor_bit': '4x'
+  'xor_bit': '2n+3'
+};
+
+
+var constantCosts = {
+  'add': '0',
+  'subt': '0',
+  'mult': '0',
+  'gt': '2ln+4l+2n+2',
+  'lt': '2ln+4l+2n+2',
+  'lte': '2ln+4l+2n+2',
+  'gte': '2ln+4l+2n+2',
+  'not': '0', 
+  'eq': '4ln+8l+6n+7',
+  'neq': '4ln+8l+6n+7',
+  'xor_bit': '0'
 };
 
 
@@ -15,7 +34,7 @@ module.exports = function (babel) {
   const t = babel.types;
 
 
-  function calculateCost(path) {
+  function calculateCost(path, operationCosts) {
     var operationName;
     var cost = null;
     try {
@@ -37,8 +56,9 @@ module.exports = function (babel) {
       var costObject = path.node.costObject;
       if (functionName in costObject) {
         var prevCost = costObject[functionName];
-        var newCost = Polynomial(cost).add(Polynomial(prevCost))
-        costObject[functionName] = newCost.toString();
+        var newCost = prevCost + '+' + cost;
+        // var newCost = Polynomial(cost).add(Polynomial(prevCost));
+        costObject[functionName] = newCost;
       } else {
         costObject[functionName] = cost;
       }
@@ -58,11 +78,12 @@ module.exports = function (babel) {
         path.node.costObject = {};
       },
       CallExpression(path, parent){
-        var cost = calculateCost(path);
         var type = path.node.arguments[0].type;
-
+        var cost = 0;
         if (type === 'NumericLiteral') {
-          cost = 0;
+          cost = calculateCost(path, constantCosts);
+        } else {
+          cost = calculateCost(path, shareCosts);
         }
         if (cost !== null) {
           updateGlobalCost(path, cost, null);          

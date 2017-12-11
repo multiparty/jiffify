@@ -4,16 +4,17 @@ var expect = require('chai').expect;
 var jiffify = require('../app/src/run');
 
 describe('#successCases', function(){
-  // it('Ternary if statement', function() {
-  //   var code = 'function f(a,b){ var a = !(a>b) ? a : b; return a;}';
-  //   var result = jiffify.parseCode(code);
+  it('Ternary if statement', function() {
+    var code = 'function f(a,b){ var c = !(a>b) ? a : b; return a;}';
+    var result = jiffify.parseCode(code);
+    expect(result.costs['f']).to.equal('0+2n+3+0+2ln+4l+2n+2+2n+3+2ln+4l+2n+2');     
+  });
 
-  //   var output = 'function f(a, b) {var a = !a.gt(b) ? a : b; return a;})';
-  //   expect(result.ast.error).to.equal(undefined);
-  //   // expect(result.code.trim()).to.equal(output);
-    
-  //   // check cost
-  // });
+  it('Multiplication', function() {
+    var code = 'function f1(a,b) {return a*b*a;}';
+    var result = jiffify.parseCode(code);
+    expect(result.costs['f1']).to.equal('2n+3+2n+3');
+  });
 
   it('Boolean', function() {
     var code = 'function f(a) {var x = true}';
@@ -40,7 +41,17 @@ describe('#successCases', function(){
 
     // TODO: make sure it works with constant on other side
   });
+    it ('XOR with constant', function() {
+      var code = 'function f(a) {return  a ^ 10}';
+      var result = jiffify.parseCode(code);
+      expect(result.costs['f']).to.equal('0');
+    });
 
+    it ('XOR', function() {
+      var code = 'function f(a) {return  a ^ a}';
+      var result = jiffify.parseCode(code);
+      expect(result.costs['f']).to.equal('2n+3');
+    });
 
   it('Handling out of order constant', function() {
 
@@ -52,7 +63,7 @@ describe('#successCases', function(){
   it ('Cost of operations with constants', function() {
     var code = 'function f(a) {return 7 * a}';
     var result = jiffify.parseCode(code);
-    expect(result.costs['f']).to.equal(0);
+    expect(result.costs['f']).to.equal('0');
   });
 
 });
@@ -107,7 +118,11 @@ describe('#errorCases', function() {
   it('Arithmetic with only numeric literals', function() {
     var code = "function f(a) {return 7 > 7}";
     var result = jiffify.parseCode(code);
+    console.log(result);
+  });
 
-    // expect
+  it('Recursion', function() {
+    var code = 'function factorial(n) { if (n === 0) { return; } return n * factorial(n-1);}';
+    var result = jiffify.parseCode(code);
   });
 });
