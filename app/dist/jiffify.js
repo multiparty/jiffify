@@ -29,12 +29,12 @@ module.exports = function (babel) {
   function handleLeftNumeric(left, right, op) {
     var expr;
     if (op === 'add' || op === 'mult') {
-      expr = t.callExpression(t.memberExpression(t.identifier(right.name), t.identifier(op)), [left]);
+      expr = t.callExpression(t.memberExpression(right, t.identifier(op)), [left]);
     } else if (op === 'sub') {
       // x - y ==> y.mult(-1).add(x)
       var neg_one = t.unaryExpression('-', t.numericLiteral(1), true);
       // y.mult(-1)
-      var inner_call = t.callExpression(t.memberExpression(t.identifier(right.name), t.identifier('mult')), [neg_one]);
+      var inner_call = t.callExpression(t.memberExpression(right, t.identifier('mult')), [neg_one]);
       // y.mult(-1).add(x)
       expr = t.callExpression(t.memberExpression(inner_call, t.identifier('add')), [left]);
     }
@@ -49,7 +49,7 @@ module.exports = function (babel) {
     var expr;
     if (t.isIdentifier(left)) {
       expr = t.callExpression(t.memberExpression(t.identifier(left.name), t.identifier(op)), [right]);
-    } else if (t.isNumericLiteral(left) && t.isIdentifier(right)) {
+    } else if (t.isNumericLiteral(left)) {
       expr = handleLeftNumeric(left, right, op);
     } else if (t.isUnaryExpression(left)) {
       expr = t.callExpression(t.memberExpression(left, t.identifier(op)), [right]);
