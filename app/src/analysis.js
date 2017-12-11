@@ -1,15 +1,32 @@
 const Polynomial = require('polynomial');
 
-var operationCosts = {
+var shareCosts = {
   'add': '0',
   'subt': '0',
-  'mult': '2p+3', //  = 2x3 + 3x
-  'gt': '2lp+4l+2p+2',
-  'lt': '2lp+4l+2p+2',
-  'lte': '2lp+4l+2p+2',
-  'gte': '2lp+4l+2p+2',
+  'mult': '2n+3', 
+  'gt': '2ln+4l+2n+2',
+  'lt': '2ln+4l+2n+2',
+  'lte': '2ln+4l+2n+2',
+  'gte': '2ln+4l+2n+2',
+  'eq': '4ln+8l+6n+7',
+  'neq': '4ln+8l+6n+7',
   'not': '0', 
-  'xor_bit': '2p+3'
+  'xor_bit': '2n+3'
+};
+
+
+var constantCosts = {
+  'add': '0',
+  'subt': '0',
+  'mult': '0',
+  'gt': '2ln+4l+2n+2',
+  'lt': '2ln+4l+2n+2',
+  'lte': '2ln+4l+2n+2',
+  'gte': '2ln+4l+2n+2',
+  'not': '0', 
+  'eq': '4ln+8l+6n+7',
+  'neq': '4ln+8l+6n+7',
+  'xor_bit': '0'
 };
 
 
@@ -17,7 +34,7 @@ module.exports = function (babel) {
   const t = babel.types;
 
 
-  function calculateCost(path) {
+  function calculateCost(path, operationCosts) {
     var operationName;
     var cost = null;
     try {
@@ -61,11 +78,14 @@ module.exports = function (babel) {
         path.node.costObject = {};
       },
       CallExpression(path, parent){
-        var cost = calculateCost(path);
         var type = path.node.arguments[0].type;
-
+        var cost = 0;
+        console.log('args',path.node.arguments);
         if (type === 'NumericLiteral') {
-          cost = 0;
+          console.log('found a constant')
+          cost = calculateCost(path, constantCosts);
+        } else {
+          cost = calculateCost(path, shareCosts);
         }
         if (cost !== null) {
           updateGlobalCost(path, cost, null);          
