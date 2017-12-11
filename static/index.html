@@ -126,13 +126,30 @@
     var errorStr = '';
     var lines = [];
     for (var i = 0; i < errors.length; i++) {
-      var start = errors[i].location.start.line;
-      var end = errors[i].location.end.line;
+      var start, end;
+      try {
+        start = errors[i].location.start.line;
+        end = errors[i].location.end.line;
+
+      } catch (e) {
+        start = '';
+        end = '';
+      }
       errorStr += 'Error: ' + errors[i].text + ', line: ' + start + '\n';
       lines.push({start: start, end: end});
     }
     return {errorStr: errorStr, lines: lines};
   }
+
+  function formatCosts(costs) {
+    var costStr = '';
+
+    for (f in costs) {
+      costStr += f + ': ' + costs[f] + '\n';
+    }
+    return costStr;
+  }
+
 
   $(document).ready(function() {
     document.getElementById("defaultOpen").click();
@@ -160,7 +177,8 @@
               var c = math.simplify(data.costs[k]);
               data.costs[k] = c.toString();
             }
-            costEditor.setValue(JSON.stringify(data.costs));
+            var costs = formatCosts(data.costs);
+            costEditor.setValue(costs);
           }
         },
         dataType: 'text'
