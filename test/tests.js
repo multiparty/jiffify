@@ -103,4 +103,11 @@ describe('#errorCases', function() {
     expect(result.ast.error.length).to.equal(1);
     expect(result.ast.error[0].name).to.equal('Unsupported operator');
   });
+
+  it('Arithmetic with only numeric literals', function() {
+    var code = "function f(a) {return 7 > 7}";
+    var result = jiffify.parseCode(code);
+
+    // expect
+  });
 });
