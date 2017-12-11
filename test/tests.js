@@ -122,6 +122,13 @@ describe('#errorCases', function() {
     expect(result.ast.error[0].name).to.equal('Unsupported operator');
   });
 
+  it('Arithmetic with only numeric literals', function() {
+    var code = "function f(a) {return 7 > 7}";
+    var result = jiffify.parseCode(code);
+    expect(result.ast.error.length).to.equal(1);
+    expect(result.ast.error[0].name).to.equal("UnsupportedOperation")
+  });
+
   it('Recursion', function() {
     var code = 'function factorial(n) { if (n === 0) { return; } return n * factorial(n-1);}';
     var result = jiffify.parseCode(code);

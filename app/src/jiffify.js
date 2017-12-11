@@ -58,13 +58,6 @@ module.exports = function (babel) {
     var right = path.node.right;
     var op = op_translate[path.node.operator];
     var expr;
-    // something like var a = 1 + 1; (can't jiffify it)
-    if (t.isNumericLiteral(left) && t.isNumericLiteral(right)) {
-      var err = createErrorObj(
-        'UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.'
-      );
-      addError(path, err);
-    }
     if (t.isIdentifier(left)) {
       expr =
         t.callExpression(
@@ -113,7 +106,15 @@ module.exports = function (babel) {
   }
 // traverse & transform nodes in a binary op
   function bin_rec_transform(path) {
-    if (t.isIdentifier(path.node.left)
+    if (t.isNumericLiteral(path.node.left) && t.isNumericLiteral(path.node.right)) {
+      // something like var a = 1 + 1; (can't jiffify it)
+      var err = createErrorObj(
+        'UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.'
+      );
+      addError(path, err);
+      return;
+    }
+    else if (t.isIdentifier(path.node.left)
       || t.isNumericLiteral(path.node.left)
       || t.isUnaryExpression(path.node.left)) {
       if (!checkSupportedOperator(path.node.operator, path)) {
@@ -319,8 +320,6 @@ module.exports = function (babel) {
         path.node.error = [];
         path.node.arrays = {};
       },
-      // temp solution, since it won't allow users to
-      // have arrays with same name in different scopes
       ArrayExpression(path) {
         addArray(path, handle_array(path));
       },
