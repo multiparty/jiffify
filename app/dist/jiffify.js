@@ -317,9 +317,10 @@ module.exports = function (babel) {
         // check if identifier is an actual param
         if (checkParam(path, node.name)) {
           var conditional = checkControlLeakage(path.parentPath, node.name);
+          console.log('node', node.loc);
           if (conditional) {
-            var loc = {};
-            var err = createErrorObj('Leakage', loc, 'Information leakage from secret share nested in conditional');
+
+            var err = createErrorObj('Leakage', node.loc, 'Information leakage from secret share nested in conditional');
             addError(path.parentPath, err);
           }
         }

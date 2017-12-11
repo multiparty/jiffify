@@ -128,6 +128,7 @@
     for (var i = 0; i < errors.length; i++) {
       var start, end;
       try {
+        console.log(errors[i]);
         start = errors[i].location.start.line;
         end = errors[i].location.end.line;
 
