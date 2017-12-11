@@ -225,7 +225,6 @@ module.exports = function (babel) {
   }
 
   function checkControlLeakage(path, name) {
-    console.log(path.node.type);
 
     if (path.node.type === 'IfStatement') {
       return true;

@@ -15,11 +15,11 @@ describe('#successCases', function(){
   //   // check cost
   // });
 
-  // it('Multiplication', function() {
-  //   var code = 'function f1(a,b) {return a*b*a;}';
-  //   var result = jiffify.parseCode(code);
-  //   console.log('cost', );
-  // });
+  it('Multiplication', function() {
+    var code = 'function f1(a,b) {return a*b*a;}';
+    var result = jiffify.parseCode(code);
+    console.log('cost', result.costs);
+  });
 
 //   it('Boolean', function() {
 //     var code = 'function f(a) {var x = true}';
@@ -110,11 +110,11 @@ describe('#successCases', function(){
 //     expect(result.ast.error[0].name).to.equal('Unsupported operator');
 //   });
 
-  it('Recursion', function() {
-    var code = 'function factorial(n) { if (n === 0) { return; } return n * factorial(n-1);}';
-    var result = jiffify.parseCode(code);
+  // it('Recursion', function() {
+  //   var code = 'function factorial(n) { if (n === 0) { return; } return n * factorial(n-1);}';
+  //   var result = jiffify.parseCode(code);
 
-    console.log(result.ast.error);
+  //   console.log(result.ast.error);
 
-  });
+  // });
 });

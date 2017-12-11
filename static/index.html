@@ -11,9 +11,11 @@
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
 
     <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.14.2/math.min.js"></script>    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="codemirror.js"></script>
     <script src="javascript.js"></script>
+    
 
 </head>
 
@@ -154,8 +156,11 @@
             highlightErrors(inputEditor, errorObj.lines);
           } else {
             outputEditor.setValue(data.code);
-            var allCosts = stringifyCosts(data.costs);
-            costEditor.setValue(allCosts);
+            for (var k in data.costs) {
+              var c = math.simplify(data.costs[k]);
+              data.costs[k] = c.toString();
+            }
+            costEditor.setValue(JSON.stringify(data.costs));
           }
         },
         dataType: 'text'

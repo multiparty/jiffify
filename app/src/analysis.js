@@ -3,11 +3,13 @@ const Polynomial = require('polynomial');
 var operationCosts = {
   'add': '0',
   'subt': '0',
-  'mult': '2x+3', //  = 2x3 + 3x
-  'gt': '3x',
-  'lt': '3x',
+  'mult': '2p+3', //  = 2x3 + 3x
+  'gt': '2lp+4l+2p+2',
+  'lt': '2lp+4l+2p+2',
+  'lte': '2lp+4l+2p+2',
+  'gte': '2lp+4l+2p+2',
   'not': '0', 
-  'xor_bit': '4x'
+  'xor_bit': '2p+3'
 };
 
 
@@ -37,8 +39,9 @@ module.exports = function (babel) {
       var costObject = path.node.costObject;
       if (functionName in costObject) {
         var prevCost = costObject[functionName];
-        var newCost = Polynomial(cost).add(Polynomial(prevCost));
-        costObject[functionName] = newCost.toString();
+        var newCost = prevCost + '+' + cost;
+        // var newCost = Polynomial(cost).add(Polynomial(prevCost));
+        costObject[functionName] = newCost;
       } else {
         costObject[functionName] = cost;
       }
