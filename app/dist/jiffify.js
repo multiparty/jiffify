@@ -84,7 +84,8 @@ module.exports = function (babel) {
       var err = createErrorObj('UnsupportedOperation', path.node.loc, 'Adding two literals is not supported.');
       addError(path, err);
       return;
-    } else if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
+    }
+    if (t.isIdentifier(path.node.left) || t.isNumericLiteral(path.node.left) || t.isUnaryExpression(path.node.left)) {
       if (!checkSupportedOperator(path.node.operator, path)) {
         return;
       }
