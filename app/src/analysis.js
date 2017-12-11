@@ -80,9 +80,7 @@ module.exports = function (babel) {
       CallExpression(path, parent){
         var type = path.node.arguments[0].type;
         var cost = 0;
-        console.log('args',path.node.arguments);
         if (type === 'NumericLiteral') {
-          console.log('found a constant')
           cost = calculateCost(path, constantCosts);
         } else {
           cost = calculateCost(path, shareCosts);

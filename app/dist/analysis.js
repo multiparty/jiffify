@@ -5,11 +5,13 @@ var Polynomial = require('polynomial');
 var shareCosts = {
   'add': '0',
   'subt': '0',
-  'mult': '2n+3', //  = 2x3 + 3x
+  'mult': '2n+3',
   'gt': '2ln+4l+2n+2',
   'lt': '2ln+4l+2n+2',
   'lte': '2ln+4l+2n+2',
   'gte': '2ln+4l+2n+2',
+  'eq': '4ln+8l+6n+7',
+  'neq': '4ln+8l+6n+7',
   'not': '0',
   'xor_bit': '2n+3'
 };
@@ -17,13 +19,15 @@ var shareCosts = {
 var constantCosts = {
   'add': '0',
   'subt': '0',
-  'mult': '2n+3', //  = 2x3 + 3x
+  'mult': '0',
   'gt': '2ln+4l+2n+2',
   'lt': '2ln+4l+2n+2',
   'lte': '2ln+4l+2n+2',
   'gte': '2ln+4l+2n+2',
   'not': '0',
-  'xor_bit': '2n+3'
+  'eq': '4ln+8l+6n+7',
+  'neq': '4ln+8l+6n+7',
+  'xor_bit': '0'
 };
 
 module.exports = function (babel) {
@@ -74,9 +78,7 @@ module.exports = function (babel) {
       CallExpression: function CallExpression(path, parent) {
         var type = path.node.arguments[0].type;
         var cost = 0;
-        console.log('args', path.node.arguments);
         if (type === 'NumericLiteral') {
-          console.log('found a constant');
           cost = calculateCost(path, constantCosts);
         } else {
           cost = calculateCost(path, shareCosts);
