@@ -64,12 +64,26 @@ dl {
   margin-top: 1vh;
 }
 
+.doc {
+  display: flex;
+  flex-direction: column;
+  width: 85vw;
+}
+.docu {
+  color: #f93434;
+}
+
+.doc a {
+  color: #f93434;
+}
+
 .wrap {
   display: flex;
   flex-direction: column;
   width: 48%;
   max-height: 50vh;
 }
+
 
 #submitBtn {
   margin:1vh;
@@ -98,7 +112,8 @@ dl {
 
 /* Style the tab */
 .tab {
-  overflow: hidden;
+  display: block;
+  margin-bottom: 1vh;
 }
 
 /* Style the buttons inside the tab */

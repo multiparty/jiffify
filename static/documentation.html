@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jiffify!</title>
+    <!-- Stylesheets -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style/codemirror.css">
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="stylesheet" href="style/isotope.css">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="codemirror.js"></script>
+    <script src="javascript.js"></script>
+
+</head>
+
+<body>
+  <div class="parent">
+  <h2>Documentation!</h2>
+  <div class="doc">
+    <h3>How to run on desktop!</h3>
+    <p>First compile using Babel: &#60;path to babel&#62; (ususally ./node_modules/.bin/babel) app/src/ -d app/dist </p>
+    <p>Make sure to have <a href src="https://www.npmjs.com/package/node">node</a> installed.</p>
+    <p>In terminal, run the server: node index.js </p>
+
+    <h3>Example!</h3>
+    <div class="child">
+      <div class="wrap">
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'input')" id="inputOpen"><h3>input</h3></button>
+        </div>
+        <div id="input" class="tabcontent2">
+          <textarea class="codemirror" id="codeInput" name="paragraph_text">function a(b) {
+  var c = !b;
+  return c;
+  }</textarea>
+        </div>
+      </div>
+      <div class="wrap">
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
+          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>
+        </div>
+        <div id="code" class="tabcontent">
+            <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
+        </div>
+        <div id="cost" class="tabcontent">
+            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>
+        </div>
+      </div>
+    </div>
+    </div>
+    <input id="submitBtn" type="submit" value="Submit">
+
+    <h3> For more information, read our <a href src="" class="docu">paper!</a></h3>
+  <div class="navbar">
+    <p><a href="index.html">home</a></p><p>|</p><p><a href="supported.html">supported functions</a></p><p>|</p><p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a></p><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
+  </div>
+</body>
+<script>
+document.getElementById("defaultOpen").click();
+document.getElementById("inputOpen").click();
+
+function openTab(evt, tabName) {
+  var i, tabcontent, tablinks;
+
+  tabcontent = document.getElementsByClassName("tabcontent");
+  if (tabName != "input") {
+  for (i = 0; i < tabcontent.length; i++) {
+    if (tabcontent[i].id !== 'input') {
+      tabcontent[i].style.display = "none";
+    }
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+      if (tablinks[i].id !== 'inputOpen') {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+  }
+}
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(tabName).style.display = "flex";
+  evt.currentTarget.className += " active";
+
+}
+
+var inputEditor = CodeMirror.fromTextArea(document.getElementById("codeInput"), {
+  lineNumbers: true,
+  styleActiveLine: true,
+  matchBrackets: true,
+});
+
+var outputEditor = CodeMirror.fromTextArea(document.getElementById("codeOutput"), {
+  lineNumbers: true,
+  styleActiveLine: true,
+  matchBrackets: true,
+});
+
+
+var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
+  lineNumbers: true,
+  styleActiveLine: true,
+  matchBrackets: true,
+});
+
+
+const THEME = "isotope";
+inputEditor.setOption("theme", THEME);
+outputEditor.setOption("theme", THEME);
+costEditor.setOption("theme", THEME);
+
+function stringifyCosts(costs) {
+  var allCosts = "";
+  for (k in costs) {
+    allCosts += k + ": " + costs[k] + "\n";
+  }
+  return allCosts;
+}
+
+var LINE_CLASS = "CodeMirror-activeline-background";
+
+function highlightErrors(inputEditor, lines) {
+  for (var i = 0; i < lines.length; i++) {
+    inputEditor.addLineClass(lines[i].start - 1, 'background', LINE_CLASS);
+  }
+}
+
+function handleErrors(errors) {
+  var errorStr = '';
+  var lines = [];
+  for (var i = 0; i < errors.length; i++) {
+    var start = errors[i].location.start.line;
+    var end = errors[i].location.end.line;
+    errorStr += 'Error: ' + errors[i].text + ', line: ' + start + '\n';
+    lines.push({start: start, end: end});
+  }
+  return {errorStr: errorStr, lines: lines};
+}
+
+$(document).ready(function() {
+  document.getElementById("defaultOpen").click();
+
+  $('#submitBtn').click(function (){
+    var code = $('#codeInput').val();
+    var text = inputEditor.getValue();
+
+    $.ajax({
+      type: "POST",
+      url: '/postCode',
+      data: {code: text},
+      success: function(data){
+        data = JSON.parse(data);
+
+        var errors = data.ast.error;
+        if (errors) {
+          var errorObj = handleErrors(errors);
+          outputEditor.setValue(errorObj.errorStr);
+          costEditor.setValue('0');
+          highlightErrors(inputEditor, errorObj.lines);
+        } else {
+          outputEditor.setValue(data.code);
+          var allCosts = stringifyCosts(data.costs);
+          costEditor.setValue(allCosts);
+        }
+      },
+      dataType: 'text'
+    });
+  });
+});
+
+</script>
+</html>
