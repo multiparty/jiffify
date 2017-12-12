@@ -15,8 +15,7 @@
     "express": "^4.16.2",
     "http": "0.0.0",
     "mathjs": "^3.17.0",
-    "path": "^0.12.7",
-    "polynomial": "^1.2.0"
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -28,7 +27,8 @@
   },
   "scripts": {
     "test": "mocha --reporter spec",
-    "compile": "./node_modules/.bin/babel src -d dist"
+    "compile": "./node_modules/.bin/babel src -d dist",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
