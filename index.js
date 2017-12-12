@@ -12,9 +12,11 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-var server = app.listen(8082, function() {
+var port = process.env.PORT || 8082;
+
+var server = app.listen(port, function() {
   console.log('Listening on port %d', server.address().port);
-  console.log('http://localhost:8082/');
+  console.log('http://localhost:' + port);
 });
 
 app.use(express.static(__dirname + '/static'));
