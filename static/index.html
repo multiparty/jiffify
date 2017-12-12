@@ -169,6 +169,7 @@
 
           var errors = data.ast.error;
           if (errors) {
+            console.log(errors);
             var errorObj = handleErrors(errors);
             outputEditor.setValue(errorObj.errorStr);
             costEditor.setValue('0');

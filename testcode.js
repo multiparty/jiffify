@@ -27,9 +27,10 @@ function soJiffed(a,b,c) {
  }
 
 
- function factorial(n) {
-     if (n == 1) {
-         return 1;
-     }
-     return n * factorial(n);
- }
+ function f(a,b) { return a | b; }
+ 
+ function f(a,b) {b = true;}
+ 
+ function factorial(n) { if (n === 0) { return; } return n * factorial(n-1);}
+
+ 

@@ -301,6 +301,16 @@ module.exports = function (babel) {
     return checkControlLeakage(path.parentPath, name);
   }
 
+  function getLoc(path) {
+    if (path.parentPath === null) {
+      return {};
+    }
+
+    if (path.node.type === 'FunctionDeclaration') {
+      return path.node.loc;
+    }
+  }
+
   function checkRecursion(name, path) {
     if (t.isProgram(path)) {
       return false; 
@@ -364,7 +374,7 @@ module.exports = function (babel) {
         }
       },
       UnaryExpression(path) {
-        unary_statement(path);
+        unary_statement(path); 
       },
       AssignmentExpression(path) {
         var node = path.node;
@@ -386,11 +396,18 @@ module.exports = function (babel) {
         // check if identifier is an actual param
         if (checkParam(path, node.name)) {
           var conditional = checkControlLeakage(path.parentPath, node.name);  
-          // console.log('node',node.loc)
+          var loc = {};
+          if (node.loc === undefined) {
+            loc = getLoc(path);
+         
+          } else {
+            loc = node.loc;
+          }
           if (conditional) {
             
             var err = createErrorObj(
-              'Leakage', node.loc, 'Information leakage from secret share nested in conditional'
+              
+              'Leakage', loc, 'Information leakage from secret share nested in conditional'
             );
             addError(path.parentPath, err);
           } 
