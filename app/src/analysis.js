@@ -1,4 +1,3 @@
-const Polynomial = require('polynomial');
 
 var shareCosts = {
   'add': '0',
@@ -57,7 +56,6 @@ module.exports = function (babel) {
       if (functionName in costObject) {
         var prevCost = costObject[functionName];
         var newCost = prevCost + '+' + cost;
-        // var newCost = Polynomial(cost).add(Polynomial(prevCost));
         costObject[functionName] = newCost;
       } else {
         costObject[functionName] = cost;

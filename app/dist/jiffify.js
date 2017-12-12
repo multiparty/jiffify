@@ -244,7 +244,6 @@ module.exports = function (babel) {
     }
 
     if (path.node.type === 'FunctionDeclaration') {
-      console.log('node', path.node.loc);
       return path.node.loc;
     }
   }
