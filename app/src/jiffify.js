@@ -171,7 +171,7 @@ module.exports = function (babel) {
 
   // !(<expr>) ==> not(<expr>)
   function unary_statement(path) {
-    if (path.node.operator === '!') {
+    if (path.node.operator === '~' || path.node.operator === '!') {
       path.replaceWith(
         t.callExpression(
           t.Identifier('not'), [path.node.argument]
