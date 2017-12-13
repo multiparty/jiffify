@@ -1,4 +1,5 @@
 // // translate arithmetic operators to jiff function names
+// TODO: impl
 var op_translate = {
   '+': 'add',
   '-': 'sub',
@@ -11,7 +12,8 @@ var op_translate = {
   '!=': 'neq',
   '===': 'eq',
   '==': 'eq',
-  '^' : 'xor_bit'
+  '^' : 'xor_bit',
+  '~': 'not'
 };
 
 // translate functions passed to reduce() into characters stored in AST
