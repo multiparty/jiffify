@@ -1,6 +1,7 @@
 'use strict';
 
 // // translate arithmetic operators to jiff function names
+// TODO: impl
 var op_translate = {
   '+': 'add',
   '-': 'sub',
@@ -13,7 +14,8 @@ var op_translate = {
   '!=': 'neq',
   '===': 'eq',
   '==': 'eq',
-  '^': 'xor_bit'
+  '^': 'xor_bit',
+  '~': 'not'
 };
 
 // translate functions passed to reduce() into characters stored in AST
@@ -117,12 +119,14 @@ module.exports = function (babel) {
 
   // !(<expr>) ==> not(<expr>)
   function unary_statement(path) {
-    if (path.node.operator === '!') {
+    if (path.node.operator === '~' || path.node.operator === '!') {
       path.replaceWith(t.callExpression(t.Identifier('not'), [path.node.argument]));
     }
   }
 
   function addError(path, error) {
+    console.log('nooode', path.node);
+
     if (t.isProgram(path.node)) {
       path.node.error.push(error);
       return;
@@ -275,8 +279,7 @@ module.exports = function (babel) {
         if (t.isIdentifier(path.node.callee)) {
           if (checkRecursion(path.node.callee.name, path.parentPath)) {
             var err = createErrorObj("Recursion", path.node.loc, "Recursion branching leaks data on inputs");
-            // addError(err, path);
-            // addError(err, path.parentPath);
+            addError(path.parentPath, err);
           }
         }
 

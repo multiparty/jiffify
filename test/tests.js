@@ -140,6 +140,7 @@ describe('#errorCases', function() {
   it('Recursion', function() {
     var code = 'function factorial(n) { if (n === 0) { return; } return n * factorial(n-1);}';
     var result = jiffify.parseCode(code);
-    console.log(result)
+    expect(result.ast.error.length).to.equal(2);
+    expect(result.ast.error[1].name).to.equal("Recursion");
   });
 });
