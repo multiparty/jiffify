@@ -140,7 +140,6 @@
     for (var i = 0; i < errors.length; i++) {
       var start, end;
       try {
-        console.log(errors[i]);
         start = errors[i].location.start.line;
         end = errors[i].location.end.line;
 
@@ -254,6 +253,14 @@
   }
 
 
+  function clearCharts() {
+    var charts = $('#chart')[0].children;
+
+    for (var i = 0; i < charts.length; i++) {
+      console.log(charts[i])
+      $('#chart')[0].removeChild(charts[i]);
+    }
+  }
 
   $(document).ready(function() {
     document.getElementById("defaultOpen").click();
@@ -279,6 +286,7 @@
 
           } else {
             outputEditor.setValue(data.code);
+            clearCharts();
             displayCharts(data.costs);
             var costs = formatCosts(data.costs);
             costEditor.setValue(costs);

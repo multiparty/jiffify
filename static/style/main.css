@@ -135,12 +135,12 @@ dl {
 
 /* Change background color of buttons on hover */
 .tablinks:hover {
-  background-color: #910d08;
+  background-color: #00BFFF;
 }
 
 /* Create an active/current tablink class */
 .tablinks.active {
-  background-color: #f93434;;
+  background-color: #FFFACD;;
 }
 
 /* Style the tab content */
