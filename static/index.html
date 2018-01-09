@@ -15,6 +15,10 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="codemirror.js"></script>
     <script src="javascript.js"></script>
+
+    <script src="../libs/moment.js"></script>
+    
+    <script src="../libs/chart.js"></script>
     
 
 </head>
@@ -36,12 +40,16 @@
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
           <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>
+          <button class="tablinks" onclick="openTab(event, 'chart')"><h3>chart</h3></button>
+          
         </div>
         <div id="code" class="tabcontent">
             <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
         </div>
         <div id="cost" class="tabcontent">
             <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>
+        </div>
+        <div id="chart" class="tabcontent">
         </div>
 
       </div>
@@ -53,6 +61,8 @@
   </div>
 
   <script>
+
+
   document.getElementById("defaultOpen").click();
   document.getElementById("inputOpen").click();
 
@@ -121,6 +131,8 @@
       inputEditor.addLineClass(lines[i].start - 1, 'background', LINE_CLASS);
     }
   }
+  
+
 
   function handleErrors(errors) {
     var errorStr = '';
@@ -144,13 +156,103 @@
 
   function formatCosts(costs) {
     var costStr = '';
-    
-    for (f in costs) {
-      console.log(costs[f]);
-      costStr += f + ': ' + costs[f] + '\n';
+    for (var id in costs) {
+      costStr += costs[id].name + ': ' + costs[id].cost + '\n';
     }
     return costStr;
   }
+
+  function createCanvas(id) {
+    var canvas = document.createElement('canvas');
+    canvas.class = 'chart';
+    canvas.id = 'canvas-' + id;
+
+    var chartDiv = document.getElementById('chart');
+    chartDiv.appendChild(canvas);
+
+  }
+
+  function convertCost(cost) {
+    var newCost = cost;
+    var secondVar = false;
+    for (var i = 1; i < cost.length; i++) {
+      if (cost[i].match(/[a-z]/)) {
+        if (cost[i] === 'l') {
+          secondVar = true;
+        }
+        if (!isNaN(parseInt(cost[i-1]))) {
+          newCost = cost.slice(0, i) + '*'  + cost.slice(i, cost.length);
+          cost = newCost;
+        }
+      }
+    }
+    if (secondVar) {
+      return new Function('n', 'l', 'return ' + newCost);
+    } 
+    return new Function('n', 'return ' + newCost);
+  }
+
+  function displayCharts(costs) {
+
+    for (var id in costs) {
+      createCanvas(id);
+      var ctx = $('#canvas-'+id)[0].getContext('2d');
+      var f = convertCost(costs[id].cost);
+      createChart(f, ctx);
+    }
+  }
+
+  function createChart(f, ctx) {
+    var data = {
+      labels: [1, 2, 3, 4, 5],
+        datasets: [{
+            label: "test",
+            function: f,
+            borderColor: "rgba(75, 192, 192, 1)",
+            data: [],
+            fill: false
+        }]
+    };
+
+
+    Chart.pluginService.register({
+        beforeInit: function(chart) {
+            var data = chart.config.data;
+            for (var i = 0; i < data.datasets.length; i++) {
+                for (var j = 0; j < data.labels.length; j++) {
+                  var fct = data.datasets[i].function,
+                      x = data.labels[j],
+                      y = fct(x);
+                    data.datasets[i].data.push(y);
+                }
+            }
+        }
+    });
+  
+  
+
+  var myBarChart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+          scales: {
+              xAxes: [{
+                gridLines: {
+                  color: 'white'
+                }
+              }],
+              yAxes: [{
+                  color: '#FFF',
+                  ticks: {
+                      beginAtZero:true
+                  }
+              }]
+          }
+      }
+    });
+  
+  }
+
 
 
   $(document).ready(function() {
@@ -167,27 +269,17 @@
         success: function(data){
           data = JSON.parse(data);
 
-          var errors = data.ast.error;
-          if (errors) {
-            console.log(errors);
-            var errorObj = handleErrors(errors);
+          if (data.errors.length > 0) {
+        
+            var errorObj = handleErrors(data.errors);
             outputEditor.setValue(errorObj.errorStr);
             costEditor.setValue('0');
+          
             highlightErrors(inputEditor, errorObj.lines);
+
           } else {
             outputEditor.setValue(data.code);
-            // for (var k in data.costs) {
-
-          
-              // // var c = math.simplify(data.costs[k]);
-              // // console.log("COSTS", data.costs[k], c)
-              // var c = data.costs[k].replace('0+', '');
-
-              // console.log('c', c);
-              // // c = c.replace('0', '');
-              // // // c = c.replace(' +', '');
-              // data.costs[k] = c;
-            // }
+            displayCharts(data.costs);
             var costs = formatCosts(data.costs);
             costEditor.setValue(costs);
           }

@@ -1,6 +1,7 @@
 const babel = require('babel-core');
 const jiffify = require('./jiffify');
-const analysis = require('./analysis');
+const carousels = require('carousels');
+const costDefinition = require('./costDefinition');
 
 function parseCode(src) {
   var converted = babel.transform(src, {
@@ -11,11 +12,9 @@ function parseCode(src) {
   if (converted.ast.program.error.length >= 1) {
     return {code: {}, ast: converted.ast.program, costs: {}};
   }
+  var costs = carousels(converted.code, costDefinition);
+  var errors = converted.ast.program.error;
+  return {code: converted.code, costs: costs, errors: errors};
 
-  var analyzed = babel.transform(
-    converted.code, {plugins: [analysis]}
-  );
-  return {code: converted.code, ast: analyzed.ast.program, costs: analyzed.ast.program.costObject};
 }
-
 module.exports.parseCode = parseCode;

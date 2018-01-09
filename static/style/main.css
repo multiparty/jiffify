@@ -31,6 +31,10 @@ a {
 
 }
 
+#chart {
+  overflow: auto;
+}
+
 a:hover {
   color: #f93434;
 }

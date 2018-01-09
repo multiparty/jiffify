@@ -125,7 +125,6 @@ module.exports = function (babel) {
   }
 
   function addError(path, error) {
-    console.log('nooode', path.node);
 
     if (t.isProgram(path.node)) {
       path.node.error.push(error);
