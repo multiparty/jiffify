@@ -39,21 +39,17 @@
       <div class="wrap">
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
-          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>
           <button class="tablinks" onclick="openTab(event, 'chart')"><h3>chart</h3></button>
           
         </div>
         <div id="code" class="tabcontent">
             <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
         </div>
-        <div id="cost" class="tabcontent">
-            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>
-        </div>
         <div id="chart" class="tabcontent">
         </div>
-
       </div>
   </div>
+
   <input id="submitBtn" type="submit" value="Submit">
   <div class="navbar">
     <p><a href="supported.html">supported functions</a></p><p>|</p><p><a href="documentation.html">documentation</a></p><p>|</p><p><a href="https://github.com/multiparty/jiffify" target="_blank">github</a></p><!--nav of, how to use, currently supported conversions etc, documentation, git link -->
@@ -104,17 +100,17 @@
   });
 
 
-  var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
-    lineNumbers: true,
-    styleActiveLine: true,
-    matchBrackets: true,
-  });
+  // var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
+  //   lineNumbers: true,
+  //   styleActiveLine: true,
+  //   matchBrackets: true,
+  // });
 
 
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
-  costEditor.setOption("theme", THEME);
+  // costEditor.setOption("theme", THEME);
 
   function stringifyCosts(costs) {
     var allCosts = "";
@@ -132,8 +128,6 @@
     }
   }
   
-
-
   function handleErrors(errors) {
     var errorStr = '';
     var lines = [];
@@ -173,22 +167,66 @@
 
   function convertCost(cost) {
     var newCost = cost;
-    var secondVar = false;
     for (var i = 1; i < cost.length; i++) {
       if (cost[i].match(/[a-z]/)) {
-        if (cost[i] === 'l') {
-          secondVar = true;
-        }
         if (!isNaN(parseInt(cost[i-1]))) {
           newCost = cost.slice(0, i) + '*'  + cost.slice(i, cost.length);
           cost = newCost;
         }
       }
     }
-    if (secondVar) {
-      return new Function('n', 'l', 'return ' + newCost);
-    } 
     return new Function('n', 'return ' + newCost);
+  }
+
+
+  function handleSliderInput(slider, chart) {
+    slider.oninput = function() {
+      var slider = document.getElementById('slider'+this.uuid);
+
+      var cost = slider.cost;
+
+      cost = cost.replace(/l/g, '*' + this.value);
+      var f = convertCost(cost);
+
+      var x = chart.data.labels;
+      chartData = getChartData(x, f)
+
+      chart.chart.data.datasets[0].data = chartData;
+
+      chart.update();
+
+
+      // window.chart.
+      // window.chart.update();
+
+      //var ctx = $('#canvas-'+ this.uuid)[0].getContext('2d');
+      //createChart(f, ctx);
+
+    }
+  }
+
+  function createSlider(id, cost, chart) {
+
+    var sliderDiv = document.createElement('div');
+    sliderDiv.class = 'slidercontainer';
+    sliderDiv.id = 'slidercontainer' + id;
+
+    var slider = document.createElement('input');
+    slider.id = 'slider'+id;
+    slider.class = 'slider';
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '128';
+    slider.value = '0';
+    slider.uuid = id;
+    slider.cost = cost;
+
+    sliderDiv.appendChild(slider);
+
+    var chartDiv = document.getElementById('chart');
+    chartDiv.appendChild(slider);
+
+    handleSliderInput(slider, chart);
   }
 
   function displayCharts(costs) {
@@ -196,60 +234,56 @@
     for (var id in costs) {
       createCanvas(id);
       var ctx = $('#canvas-'+id)[0].getContext('2d');
-      var f = convertCost(costs[id].cost);
-      createChart(f, ctx);
+      var initialCost = costs[id].cost.replace(/l/g, '*0');
+      var f = convertCost(initialCost);
+      var chart = createChart(id, f, ctx);
+      createSlider(id, costs[id].cost, chart);
     }
   }
 
-  function createChart(f, ctx) {
+  function getChartData(x, f) {
+    var chartData = [];
+    for (var i = 0; i < x.length; i++) {
+      chartData.push(f(x[i]));
+    }
+    return chartData;
+  }
+
+  function createChart(id, f, ctx) {
+
+    xInput = [0,1,2,3,4,5];
+
+    var chartData = getChartData(xInput, f);
+
     var data = {
-      labels: [1, 2, 3, 4, 5],
+      labels: xInput,
         datasets: [{
-            label: "test",
-            function: f,
+            label: 'performance',
             borderColor: "rgba(75, 192, 192, 1)",
-            data: [],
+            data: chartData,
             fill: false
         }]
     };
-
-
-    Chart.pluginService.register({
-        beforeInit: function(chart) {
-            var data = chart.config.data;
-            for (var i = 0; i < data.datasets.length; i++) {
-                for (var j = 0; j < data.labels.length; j++) {
-                  var fct = data.datasets[i].function,
-                      x = data.labels[j],
-                      y = fct(x);
-                    data.datasets[i].data.push(y);
-                }
-            }
-        }
-    });
   
-  
-
-  var myBarChart = new Chart(ctx, {
+    return new Chart(ctx, {
       type: 'line',
       data: data,
       options: {
-          scales: {
-              xAxes: [{
-                gridLines: {
-                  color: 'white'
-                }
-              }],
-              yAxes: [{
-                  color: '#FFF',
-                  ticks: {
-                      beginAtZero:true
-                  }
-              }]
-          }
+        scales: {
+          xAxes: [{
+            gridLines: {
+              color: 'white'
+            }
+          }],
+          yAxes: [{
+            color: '#FFF',
+            ticks: {
+                beginAtZero:true
+            }
+          }]
+        }
       }
     });
-  
   }
 
 
@@ -257,7 +291,6 @@
     var charts = $('#chart')[0].children;
 
     for (var i = 0; i < charts.length; i++) {
-      console.log(charts[i])
       $('#chart')[0].removeChild(charts[i]);
     }
   }
@@ -280,7 +313,6 @@
         
             var errorObj = handleErrors(data.errors);
             outputEditor.setValue(errorObj.errorStr);
-            costEditor.setValue('0');
           
             highlightErrors(inputEditor, errorObj.lines);
 
@@ -288,8 +320,6 @@
             outputEditor.setValue(data.code);
             clearCharts();
             displayCharts(data.costs);
-            var costs = formatCosts(data.costs);
-            costEditor.setValue(costs);
           }
         },
         dataType: 'text'
