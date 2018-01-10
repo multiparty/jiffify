@@ -19,13 +19,11 @@ var server = app.listen(port, function() {
   console.log('http://localhost:' + port);
 });
 
-app.use(express.static(__dirname + '/static'));
-app.use(express.static(__dirname + '/style'));
-app.use(express.static(__dirname + '/js'));
+app.use(express.static(__dirname + '/client'));
 
 
 app.get('/', function(req,res) {
-  res.sendFile((path.join(__dirname + '/static/index.html')));
+  res.sendFile((path.join(__dirname + '/client/index.html')));
 });
 
 app.post('/postCode', function(req,res) {

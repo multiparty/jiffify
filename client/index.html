@@ -13,8 +13,8 @@
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.14.2/math.min.js"></script>    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="codemirror.js"></script>
-    <script src="javascript.js"></script>
+    <script src="../libs/codemirror.js"></script>
+    <script src="../libs/javascript.js"></script>
 
     <script src="../libs/moment.js"></script>
     
@@ -39,12 +39,17 @@
       <div class="wrap">
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'code')" id="defaultOpen"><h3>code</h3></button>
+          <button class="tablinks" onclick="openTab(event, 'cost')"><h3>cost</h3></button>
           <button class="tablinks" onclick="openTab(event, 'chart')"><h3>chart</h3></button>
           
         </div>
         <div id="code" class="tabcontent">
             <textarea class="codemirror" id="codeOutput" name="paragraph_text"></textarea>
         </div>
+        <div id="cost" class="tabcontent">
+            <textarea class="codemirror" id="costOutput" name="paragraph_text"></textarea>
+        </div>
+
         <div id="chart" class="tabcontent">
         </div>
       </div>

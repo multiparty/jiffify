@@ -40,9 +40,16 @@
     matchBrackets: true,
   });
 
+  var costEditor = CodeMirror.fromTextArea(document.getElementById("costOutput"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+  });
+
   const THEME = "isotope";
   inputEditor.setOption("theme", THEME);
   outputEditor.setOption("theme", THEME);
+  costEditor.setOption("theme", THEME);
 
   function stringifyCosts(costs) {
     var allCosts = "";
@@ -107,11 +114,14 @@
         
             var errorObj = handleErrors(data.errors);
             outputEditor.setValue(errorObj.errorStr);
-          
+            costEditor.setValue('0');
+
             highlightErrors(inputEditor, errorObj.lines);
 
           } else {
             outputEditor.setValue(data.code);
+            costEditor.setValue(JSON.stringify(data.costs));
+            
             clearCharts(); 
             generateCharts(data.costs);
           }
