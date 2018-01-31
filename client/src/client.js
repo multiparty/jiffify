@@ -110,11 +110,12 @@
         success: function(data){
           data = JSON.parse(data);
 
-          if (data.errors.length > 0) {
+          if (data.ast.error.length > 0) {
         
-            var errorObj = handleErrors(data.errors);
+            var errorObj = handleErrors(data.ast.error);
             outputEditor.setValue(errorObj.errorStr);
             costEditor.setValue('0');
+            clearCharts();
 
             highlightErrors(inputEditor, errorObj.lines);
 
